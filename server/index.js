@@ -4,6 +4,8 @@ import cors from "cors";
 import connectDB from "./config/database.js";
 import colors from "colors";
 
+import { notFound, errorHandler } from "./middleware/errorHandlerMiddleware.js";
+
 import authRoutes from "./routes/authRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
@@ -15,6 +17,9 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+app.use(notFound);
+app.use(errorHandler);
 
 app.use("/api/user", authRoutes);
 app.use("/api/product", productRoutes);
