@@ -6,6 +6,7 @@ import colors from "colors";
 
 import authRoutes from "./routes/authRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
+import orderRoutes from "./routes/orderRoutes.js";
 
 dotenv.config();
 connectDB();
@@ -17,6 +18,7 @@ app.use(express.json());
 
 app.use("/api/user", authRoutes);
 app.use("/api/product", productRoutes);
+app.use("/api/order", orderRoutes);
 
 app.get("/", (req, res) => {
   res.send("API is running.......");
