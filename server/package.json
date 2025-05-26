@@ -1,0 +1,32 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "\"e-commerce apllication server\"",
+  "homepage": "https://github.com/Gopichandu923/e-commerce#readme",
+  "bugs": {
+    "url": "https://github.com/Gopichandu923/e-commerce/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Gopichandu923/e-commerce.git"
+  },
+  "license": "ISC",
+  "author": "gopi",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "express-async-handler": "^1.2.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.15.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}
