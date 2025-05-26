@@ -18,9 +18,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.use(notFound);
-app.use(errorHandler);
-
 app.use("/api/user", authRoutes);
 app.use("/api/product", productRoutes);
 app.use("/api/order", orderRoutes);
@@ -28,6 +25,9 @@ app.use("/api/order", orderRoutes);
 app.get("/", (req, res) => {
   res.send("API is running.......");
 });
+
+app.use(notFound);
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
