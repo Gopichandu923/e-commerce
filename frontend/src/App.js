@@ -7,10 +7,13 @@ import Profile from "./pages/Profile.js";
 import Login from "./pages/Login.js";
 import Register from "./pages/Register";
 import Order from "./pages/Order.js";
+import Header from "./components/Header.js";
+import Footer from "./components/Footer.js";
 
 const App = () => {
   return (
     <Router>
+      <Header />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/cart" element={<Cart />} />
@@ -20,6 +23,7 @@ const App = () => {
         <Route path="/register" element={<Register />} />
         <Route path="/orders" element={<Order />} />
       </Routes>
+      <Footer />
     </Router>
   );
 };
