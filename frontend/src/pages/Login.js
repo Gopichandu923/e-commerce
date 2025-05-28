@@ -103,12 +103,12 @@ const Login = () => {
                 Remember me
               </label>
             </div>
-
+            {/*
             <div className="link">
-              <a href="#" className="link-text">
+              <a href="/register" className="link-text">
                 Forgot your password?
               </a>
-            </div>
+            </div> */}
           </div>
 
           <div>
@@ -150,7 +150,7 @@ const Login = () => {
         <div className="signup-link">
           <p>
             Don't have an account?{" "}
-            <a href="#" className="link-text">
+            <a href="/register" className="link-text">
               Sign up
             </a>
           </p>
