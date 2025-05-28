@@ -10,20 +10,25 @@ import Order from "./pages/Order.js";
 import Header from "./components/Header.js";
 import Footer from "./components/Footer.js";
 
+import "./App.css";
 const App = () => {
   return (
     <Router>
-      <Header />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/cart" element={<Cart />} />
-        <Route path="/products" element={<Product />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/orders" element={<Order />} />
-      </Routes>
-      <Footer />
+      <div className="app-container">
+        <Header />
+        <main className="main-content">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/cart" element={<Cart />} />
+            <Route path="/products" element={<Product />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/orders" element={<Order />} />
+          </Routes>
+        </main>
+        <Footer />
+      </div>
     </Router>
   );
 };
