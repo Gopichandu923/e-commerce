@@ -7,7 +7,7 @@ import {
   getAddresses,
   getMainAddress,
 } from "../controllers/addressController.js";
-import protect from "../middleware/authMiddleware.js";
+import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
