@@ -58,3 +58,5 @@ const getFavorites = asyncHandler(async (req, res) => {
 
   res.status(200).json(user.favorites);
 });
+
+export { getFavorites, addToFavorites, removeFromFavorites };
