@@ -7,9 +7,9 @@ import {
 
 const router = express.Router();
 
-router.route("/favorites").get(protect, getFavorites);
+router.route("/").get(protect, getFavorites);
 router
-  .route("/favorites/:productId")
+  .route("/:productId")
   .post(protect, addToFavorites)
   .delete(protect, removeFromFavorites);
 
