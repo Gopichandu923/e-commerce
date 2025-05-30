@@ -5,21 +5,72 @@ const userSchema = mongoose.Schema(
   {
     name: {
       type: String,
-      required: true,
+      required: [true, "Please add a name"],
+      trim: true,
     },
     email: {
       type: String,
-      required: true,
+      required: [true, "Please add an email"],
       unique: true,
+      trim: true,
+      lowercase: true,
+      match: [
+        /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
+        "Please add a valid email",
+      ],
     },
     password: {
       type: String,
-      required: true,
+      required: [true, "Please add a password"],
+      minlength: [6, "Password must be at least 6 characters"],
+      select: false,
+    },
+    favorites: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "Product",
+      default: [],
+    },
+    cart: {
+      type: [
+        {
+          productId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Product",
+            required: true,
+          },
+          quantity: {
+            type: Number,
+            required: true,
+            default: 1,
+            min: [1, "Quantity can't be less than 1"],
+          },
+          priceAtAddition: {
+            type: Number,
+            required: true,
+          },
+          addedAt: {
+            type: Date,
+            default: Date.now,
+          },
+        },
+      ],
+      default: [],
+    },
+    orders: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "Order",
+      default: [],
     },
     isAdmin: {
       type: Boolean,
       required: true,
       default: false,
+    },
+    shippingAddress: {
+      address: { type: String },
+      city: { type: String },
+      postalCode: { type: String },
+      country: { type: String },
     },
   },
   {
@@ -35,6 +86,7 @@ userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {
     next();
   }
+
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
 });
