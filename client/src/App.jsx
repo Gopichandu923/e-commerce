@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./pages/HomePage.jsx";
 import Cart from "./pages/CartPage.jsx";
+import Favourite from "./pages/FavouritePage.jsx";
 import Product from "./pages/ProductPage.jsx";
 import Profile from "./pages/ProfilePage.jsx";
 import Login from "./pages/LoginPage.jsx";
@@ -24,6 +25,7 @@ const App = () => {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/orders" element={<Order />} />
+            <Route path="/favourite" element={<Favourite />} />
           </Routes>
         </main>
         <Footer />
