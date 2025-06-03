@@ -1,6 +1,7 @@
 import User from "../models/userModel.js";
 import Product from "../models/productModel.js";
 import asyncHandler from "express-async-handler";
+import mongoose from "mongoose";
 
 const addToCart = asyncHandler(async (req, res) => {
   const userId = req.user._id;
