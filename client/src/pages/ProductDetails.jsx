@@ -1,23 +1,20 @@
 // src/pages/ProductDetailPage.jsx
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import axios from "axios";
-import Rating from "../components/Rating"; // Adjust path if needed
-import ProductCard from "../components/ProductCard"; // Adjust path, for related products
 import {
   FiHeart,
   FiShoppingCart,
   FiMessageSquare,
   FiSend,
   FiChevronLeft,
-} from "react-icons/fi"; // Example icons
+} from "react-icons/fi";
+import Rating from "../components/Rating";
+import ProductCard from "../components/ProductCard";
 
-// Configuration
-const API_BASE_URL = "http://localhost:4040/api"; // CHANGE THIS IF NEEDED
+const API_BASE_URL = "http://localhost:4040/api";
 const USER_AUTH_TOKEN = localStorage.getItem("token");
-// Ensure USER_INFO is properly parsed or null
-const USER_INFO_STRING = "gopi";
-const USER_INFO = USER_INFO_STRING ? JSON.parse(USER_INFO_STRING) : null;
+const USER_INFO = "gopi"; // Placeholder for logged-in user
 
 const ProductDetailPage = () => {
   const { productId } = useParams();
@@ -26,10 +23,8 @@ const ProductDetailPage = () => {
   const [product, setProduct] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [quantity, setQuantity] = useState(1);
-  const [isFavorite, setIsFavorite] = useState(false);
-  const [favoriteProcessing, setFavoriteProcessing] = useState(false); // For button disabled state
+  const [favoriteProcessing, setFavoriteProcessing] = useState(false);
 
-  // For reviews
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewComment, setReviewComment] = useState("");
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
@@ -39,64 +34,42 @@ const ProductDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const axiosInstance = React.useMemo(
-    () =>
-      axios.create({
-        baseURL: API_BASE_URL,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: USER_AUTH_TOKEN
-            ? `Bearer ${USER_AUTH_TOKEN}`
-            : undefined,
-        },
-      }),
-    [USER_AUTH_TOKEN]
-  );
+  const axiosInstance = useMemo(() => {
+    return axios.create({
+      baseURL: API_BASE_URL,
+      headers: {
+        "Content-Type": "application/json",
+        ...(USER_AUTH_TOKEN && { Authorization: `Bearer ${USER_AUTH_TOKEN}` }),
+      },
+    });
+  }, []);
 
   const fetchProductDetails = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const { data } = await axiosInstance.get(`/product/${productId}`); // Corrected endpoint
+      const { data } = await axiosInstance.get(`/product/${productId}`);
       setProduct(data);
-
-      if (data && data.category) {
+      if (data.category) {
         fetchRelatedProducts(data.category, data._id);
-      }
-
-      if (USER_INFO && data?._id) {
-        try {
-          const favResponse = await axiosInstance.get("/favourite"); // Corrected endpoint
-          const isProdFavorite = favResponse.data.some(
-            (favProd) =>
-              favProd._id === data._id || favProd.product?._id === data._id // Example check
-          );
-          setIsFavorite(isProdFavorite);
-        } catch (favError) {
-          console.error("Failed to fetch favorite status:", favError);
-        }
-      } else {
-        setIsFavorite(false);
       }
     } catch (err) {
       console.error("Failed to fetch product details:", err);
-      setError(
-        err.response?.data?.message || err.message || "Failed to load product."
-      );
+      setError(err.response?.data?.message || "Failed to load product.");
     } finally {
       setLoading(false);
     }
-  }, [productId, axiosInstance, USER_INFO]);
+  }, [productId, axiosInstance]);
 
   const fetchRelatedProducts = async (categoryName, currentProductId) => {
     try {
       const { data } = await axiosInstance.get(
-        // Corrected endpoint
         `/product/category/${encodeURIComponent(categoryName.toLowerCase())}`
       );
-      setRelatedProducts(
-        data.filter((p) => p._id !== currentProductId).slice(0, 4)
-      );
+      const related = data
+        .filter((p) => p._id !== currentProductId)
+        .slice(0, 4);
+      setRelatedProducts(related);
     } catch (err) {
       console.error("Failed to fetch related products:", err);
       setRelatedProducts([]);
@@ -140,29 +113,32 @@ const ProductDetailPage = () => {
     }
   };
 
-  // --- MODIFIED: addToFavoriteHandler (no toggle, just add if not already favorite) ---
   const addToFavoriteHandler = async () => {
     if (!USER_INFO) {
       alert("Please log in to add to favorites.");
       navigate("/login");
       return;
     }
-    if (isFavorite || favoriteProcessing) {
-      // If already favorite or processing, do nothing
-      return;
-    }
+    if (favoriteProcessing) return;
 
     setFavoriteProcessing(true);
     try {
-      await axiosInstance.post(`/favourite/${product._id}`); // Corrected endpoint
-      setIsFavorite(true);
+      await axiosInstance.post(`/favourite/${product._id}`);
       alert(`${product.name} added to favorites.`);
     } catch (err) {
-      alert(
-        `Failed to add to favorites: ${
-          err.response?.data?.message || err.message
-        }`
-      );
+      if (
+        err.response &&
+        err.response.status === 400 &&
+        err.response.data.message === "Product already in favorites"
+      ) {
+        alert("This product is already in your favorites!");
+      } else {
+        alert(
+          `Failed to add to favorites: ${
+            err.response?.data?.message || err.message
+          }`
+        );
+      }
     } finally {
       setFavoriteProcessing(false);
     }
@@ -183,8 +159,7 @@ const ProductDetailPage = () => {
     setReviewError("");
     setReviewSuccess("");
     try {
-      await axiosInstance.post(`/products/${productId}/reviews`, {
-        // Corrected endpoint
+      await axiosInstance.post(`/product/${productId}/reviews`, {
         rating: reviewRating,
         comment: reviewComment,
       });
@@ -219,14 +194,16 @@ const ProductDetailPage = () => {
 
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8">
+      {/* Back Button */}
       <button
         onClick={() => navigate(-1)}
-        className="mb-6 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+        className="mb-6 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gray-600 hover:bg-gray-700"
       >
         <FiChevronLeft className="-ml-1 mr-2 h-5 w-5" />
         Back
       </button>
 
+      {/* Product Details */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 mb-12">
         <div className="bg-gray-100 rounded-lg p-4 flex justify-center items-center shadow-lg">
           <img
@@ -235,14 +212,14 @@ const ProductDetailPage = () => {
               "https://via.placeholder.com/600x600?text=No+Image"
             }
             alt={product.name}
-            className="max-w-full max-h-[70vh] h-auto object-contain rounded-md"
+            className="max-w-full max-h-[70vh] object-contain rounded-md"
           />
         </div>
-
         <div className="flex flex-col justify-between">
           <div>
             <p className="text-sm text-gray-500 mb-1">
-              {product.category} {product.brand && `| ${product.brand}`}
+              {product.category}
+              {product.brand && ` | ${product.brand}`}
             </p>
             <h1 className="text-3xl lg:text-4xl font-bold text-gray-800 mb-3">
               {product.name}
@@ -270,6 +247,7 @@ const ProductDetailPage = () => {
             </p>
           </div>
 
+          {/* Action Buttons */}
           <div className="mt-auto">
             {product.countInStock > 0 && (
               <div className="flex items-center mb-6 space-x-4">
@@ -280,7 +258,7 @@ const ProductDetailPage = () => {
                   id="quantity"
                   value={quantity}
                   onChange={handleQuantityChange}
-                  className="p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white"
+                  className="p-2 border border-gray-300 rounded-md"
                 >
                   {[...Array(Math.min(product.countInStock, 10)).keys()].map(
                     (x) => (
@@ -292,45 +270,29 @@ const ProductDetailPage = () => {
                 </select>
               </div>
             )}
-
             <div className="flex flex-col sm:flex-row gap-3">
               <button
                 onClick={addToCartHandler}
                 disabled={product.countInStock === 0}
-                className="flex-1 flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md"
               >
-                <FiShoppingCart className="mr-2 h-5 w-5" /> Add to Cart
+                <FiShoppingCart className="mr-2 h-5 w-5" />
+                Add to Cart
               </button>
-              {/* --- MODIFIED Favorite Button --- */}
               <button
-                onClick={addToFavoriteHandler} // Changed from toggleFavoriteHandler
-                disabled={isFavorite || favoriteProcessing} // Disable if already favorite or processing
-                className={`flex-1 flex items-center justify-center border-2 
-                  ${
-                    isFavorite
-                      ? "border-pink-500 text-pink-500 bg-pink-100 cursor-not-allowed" // Style for already favorited
-                      : "border-gray-300 text-gray-700 hover:bg-gray-100"
-                  } 
-                  font-semibold py-3 px-6 rounded-lg shadow-sm transition duration-300 ease-in-out
-                  disabled:opacity-60 disabled:cursor-not-allowed`}
+                onClick={addToFavoriteHandler}
+                disabled={favoriteProcessing}
+                className="flex-1 flex items-center justify-center border-2 border-gray-300 text-gray-700 hover:bg-gray-100 font-semibold py-3 px-6 rounded-lg shadow-sm"
               >
-                <FiHeart
-                  className={`mr-2 h-5 w-5 ${
-                    isFavorite ? "fill-current text-pink-500" : ""
-                  }`}
-                />
-                {isFavorite
-                  ? "Favorited"
-                  : favoriteProcessing
-                  ? "Adding..."
-                  : "Add to Favorites"}
+                <FiHeart className="mr-2 h-5 w-5" />
+                {favoriteProcessing ? "Adding..." : "Add to Favorites"}
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Reviews Section (unchanged) */}
+      {/* Reviews */}
       <div className="mb-12">
         <h2 className="text-2xl font-semibold text-gray-800 mb-6 border-b pb-3">
           Customer Reviews
@@ -358,12 +320,12 @@ const ProductDetailPage = () => {
         )}
       </div>
 
-      {/* Write a Review Section (unchanged) */}
+      {/* Write a Review */}
       {USER_INFO ? (
         <div className="p-6 bg-white rounded-lg shadow-md">
           <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-            <FiMessageSquare className="mr-2 h-6 w-6 text-blue-500" /> Write a
-            Customer Review
+            <FiMessageSquare className="mr-2 h-6 w-6 text-blue-500" />
+            Write a Customer Review
           </h3>
           {reviewSuccess && (
             <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-md">
@@ -387,7 +349,7 @@ const ProductDetailPage = () => {
                 id="rating"
                 value={reviewRating}
                 onChange={(e) => setReviewRating(Number(e.target.value))}
-                className="w-full sm:w-1/2 p-2 border border-gray-300 rounded-md shadow-sm bg-white"
+                className="w-full sm:w-1/2 p-2 border border-gray-300 rounded-md"
                 required
               >
                 <option value="0">Select...</option>
@@ -410,17 +372,16 @@ const ProductDetailPage = () => {
                 rows="4"
                 value={reviewComment}
                 onChange={(e) => setReviewComment(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md shadow-sm"
-                placeholder="Share your thoughts about the product..."
+                className="w-full p-2 border border-gray-300 rounded-md"
                 required
               ></textarea>
             </div>
             <button
               type="submit"
               disabled={reviewSubmitting}
-              className="inline-flex items-center px-6 py-2.5 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-70"
+              className="inline-flex items-center px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md"
             >
-              <FiSend className="mr-2 h-5 w-5" />{" "}
+              <FiSend className="mr-2 h-5 w-5" />
               {reviewSubmitting ? "Submitting..." : "Submit Review"}
             </button>
           </form>
@@ -435,7 +396,7 @@ const ProductDetailPage = () => {
         </p>
       )}
 
-      {/* Related Products Section (unchanged) */}
+      {/* Related Products */}
       {relatedProducts.length > 0 && (
         <div className="mt-16">
           <h2 className="text-2xl font-semibold text-gray-800 mb-8 text-center border-t pt-8">
