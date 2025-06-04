@@ -7,14 +7,17 @@ import {
   deleteProduct,
   createProductReview,
   getAllCategories,
+  getProductsByCategory,
+  seacrhProducts,
 } from "../controllers/productController.js";
 import { protect, admin } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
 router.route("/").get(getAllProducts).post(protect, admin, createProduct);
+router.route("/category/:category").get(getProductsByCategory);
 router.route("/categories").get(getAllCategories);
-
+router.route("/search").get(seacrhProducts);
 router
   .route("/:id")
   .get(getProductById)

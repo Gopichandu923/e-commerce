@@ -137,6 +137,45 @@ const getAllCategories = asyncHandler(async (req, res) => {
     res.status(200).json([]);
   }
 });
+
+const getProductsByCategory = asyncHandler(async (req, res) => {
+  const { category } = req.params;
+  if (!category) {
+    res.status(400);
+    throw new Error("Category parameter is required");
+  }
+  const products = await Product.find({
+    category: { $regex: category, $options: "i" },
+  });
+  if (products.length > 0) {
+    res.status(200).json(products);
+  } else {
+    res.status(404);
+    throw new Error("No products found under this category");
+  }
+});
+
+const seacrhProducts = asyncHandler(async (req, res) => {
+  const keywordQuery = req.query.keyword;
+
+  if (!keywordQuery || keywordQuery.trim() === "") {
+    res.status(400).json({ message: "Please provide a search keyword." });
+    return;
+  }
+
+  const searchCriteria = {
+    $or: [
+      { name: { $regex: keywordQuery, $options: "i" } },
+      { description: { $regex: keywordQuery, $options: "i" } },
+      { category: { $regex: keywordQuery, $options: "i" } },
+      { brand: { $regex: keywordQuery, $options: "i" } },
+    ],
+  };
+  const products = await Product.find(searchCriteria).sort({ createdAt: -1 });
+
+  res.json(products);
+});
+
 export {
   getAllProducts,
   getProductById,
@@ -145,4 +184,6 @@ export {
   deleteProduct,
   createProductReview,
   getAllCategories,
+  getProductsByCategory,
+  seacrhProducts,
 };
