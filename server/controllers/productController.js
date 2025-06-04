@@ -105,6 +105,38 @@ const createProductReview = asyncHandler(async (req, res) => {
   }
 });
 
+const getAllCategories = asyncHandler(async (req, res) => {
+  const categoriesWithImages = await Product.aggregate([
+    {
+      $match: {
+        category: { $exists: true, $ne: null, $ne: "" },
+        image: { $exists: true, $ne: null, $ne: "" },
+      },
+    },
+    {
+      $group: {
+        _id: "$category",
+        image: { $first: "$image" },
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        name: "$_id",
+        image: 1,
+      },
+    },
+    {
+      $sort: { name: 1 },
+    },
+  ]);
+
+  if (categoriesWithImages && categoriesWithImages.length > 0) {
+    res.status(200).json(categoriesWithImages);
+  } else {
+    res.status(200).json([]);
+  }
+});
 export {
   getAllProducts,
   getProductById,
@@ -112,4 +144,5 @@ export {
   updateProduct,
   deleteProduct,
   createProductReview,
+  getAllCategories,
 };
