@@ -1,4 +1,3 @@
-// src/components/Login.js
 import axios from "axios";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -19,8 +18,6 @@ const Login = () => {
       ...formData,
       [name]: value,
     });
-
-    // Clear error when user types
     if (errors[name]) {
       setErrors({
         ...errors,
@@ -71,206 +68,44 @@ const Login = () => {
         navigate("/");
       }, 2000);
     } catch (error) {
-      setErrors({ general: error.response.data.message });
+      setErrors({
+        general: error.response?.data?.message || "An error occurred",
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Styles defined as objects
-  const styles = {
-    container: {
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      minHeight: "100vh",
-      backgroundColor: "#f5f7fa",
-      padding: "20px",
-      fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-    },
-    card: {
-      width: "100%",
-      maxWidth: "450px",
-      backgroundColor: "#ffffff",
-      borderRadius: "12px",
-      boxShadow: "0 10px 25px rgba(0, 0, 0, 0.1)",
-      padding: "40px",
-      transition: "all 0.3s ease",
-    },
-    header: {
-      textAlign: "center",
-      marginBottom: "30px",
-    },
-    title: {
-      fontSize: "28px",
-      fontWeight: "600",
-      color: "#2d3748",
-      marginBottom: "8px",
-    },
-    subtitle: {
-      fontSize: "16px",
-      color: "#718096",
-      fontWeight: "400",
-    },
-    formGroup: {
-      marginBottom: "20px",
-    },
-    label: {
-      display: "block",
-      marginBottom: "8px",
-      fontWeight: "500",
-      color: "#4a5568",
-      fontSize: "14px",
-    },
-    input: {
-      width: "100%",
-      padding: "12px 15px",
-      borderRadius: "8px",
-      border: "1px solid #e2e8f0",
-      fontSize: "16px",
-      color: "#2d3748",
-      backgroundColor: "#f8fafc",
-      transition: "border-color 0.3s, box-shadow 0.3s",
-    },
-    inputFocus: {
-      borderColor: "#4299e1",
-      boxShadow: "0 0 0 3px rgba(66, 153, 225, 0.2)",
-      outline: "none",
-    },
-    errorText: {
-      color: "#e53e3e",
-      fontSize: "14px",
-      marginTop: "5px",
-      display: "block",
-    },
-    button: {
-      width: "100%",
-      padding: "14px",
-      backgroundColor: "#4299e1",
-      color: "white",
-      border: "none",
-      borderRadius: "8px",
-      fontSize: "16px",
-      fontWeight: "600",
-      cursor: "pointer",
-      transition: "background-color 0.3s, transform 0.2s",
-      marginTop: "10px",
-    },
-    buttonHover: {
-      backgroundColor: "#3182ce",
-    },
-    buttonDisabled: {
-      backgroundColor: "#a0aec0",
-      cursor: "not-allowed",
-    },
-    footer: {
-      textAlign: "center",
-      marginTop: "25px",
-      color: "#718096",
-      fontSize: "15px",
-    },
-    link: {
-      color: "#4299e1",
-      textDecoration: "none",
-      fontWeight: "500",
-    },
-    successMessage: {
-      backgroundColor: "#48bb78",
-      color: "white",
-      padding: "12px",
-      borderRadius: "8px",
-      textAlign: "center",
-      marginBottom: "20px",
-      fontSize: "14px",
-    },
-    errorMessage: {
-      backgroundColor: "#fc8181",
-      color: "white",
-      padding: "12px",
-      borderRadius: "8px",
-      textAlign: "center",
-      marginBottom: "20px",
-      fontSize: "14px",
-    },
-    loadingDots: {
-      display: "inline-block",
-      width: "80px",
-      textAlign: "center",
-    },
-    dot: {
-      display: "inline-block",
-      width: "10px",
-      height: "10px",
-      borderRadius: "50%",
-      backgroundColor: "white",
-      margin: "0 3px",
-      animation: "bounce 1.4s infinite ease-in-out both",
-    },
-    dot1: { animationDelay: "-0.32s" },
-    dot2: { animationDelay: "-0.16s" },
-    keyframes: `@keyframes bounce {
-      0%, 80%, 100% { transform: scale(0); }
-      40% { transform: scale(1.0); }
-    }`,
-    passwordContainer: {
-      position: "relative",
-      display: "flex",
-      alignItems: "center",
-    },
-    passwordInput: {
-      width: "100%",
-      paddingRight: "40px",
-    },
-    toggleIcon: {
-      position: "absolute",
-      right: "10px",
-      cursor: "pointer",
-      color: "#718096",
-    },
-    rememberContainer: {
-      display: "flex",
-      alignItems: "center",
-      margin: "15px 0",
-    },
-    rememberCheckbox: {
-      marginRight: "8px",
-      width: "16px",
-      height: "16px",
-      cursor: "pointer",
-    },
-    rememberLabel: {
-      color: "#4a5568",
-      fontSize: "14px",
-      cursor: "pointer",
-    },
-    forgotPassword: {
-      marginLeft: "auto",
-      color: "#4299e1",
-      fontSize: "14px",
-      textDecoration: "none",
-    },
-  };
-
   return (
-    <div style={styles.container}>
-      <style>{styles.keyframes}</style>
-      <div style={styles.card}>
-        <div style={styles.header}>
-          <h1 style={styles.title}>Welcome Back</h1>
-          <p style={styles.subtitle}>Sign in to continue to your account</p>
+    <div className="flex justify-center items-center min-h-screen bg-gray-50 p-5 font-sans">
+      <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-10 transition-all">
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-semibold text-gray-800 mb-2">
+            Welcome Back
+          </h1>
+          <p className="text-gray-600 text-base">
+            Sign in to continue to your account
+          </p>
         </div>
 
         {successMessage && (
-          <div style={styles.successMessage}>{successMessage}</div>
+          <div className="bg-green-500 text-white p-3 rounded-lg text-center mb-5 text-sm">
+            {successMessage}
+          </div>
         )}
 
         {errors.general && (
-          <div style={styles.errorMessage}>{errors.general}</div>
+          <div className="bg-red-400 text-white p-3 rounded-lg text-center mb-5 text-sm">
+            {errors.general}
+          </div>
         )}
 
         <form onSubmit={handleSubmit}>
-          <div style={styles.formGroup}>
-            <label htmlFor="email" style={styles.label}>
+          <div className="mb-6">
+            <label
+              htmlFor="email"
+              className="block mb-2 font-medium text-gray-700 text-sm"
+            >
               Email Address
             </label>
             <input
@@ -279,75 +114,79 @@ const Login = () => {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              style={{
-                ...styles.input,
-                ...(errors.email ? { borderColor: "#e53e3e" } : {}),
-                ...(document.activeElement ===
-                  document.getElementById("email") && !errors.email
-                  ? styles.inputFocus
-                  : {}),
-              }}
+              className={`w-full px-4 py-3 rounded-lg border ${
+                errors.email ? "border-red-500" : "border-gray-300"
+              } text-gray-700 bg-gray-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition`}
               placeholder="john@example.com"
             />
             {errors.email && (
-              <span style={styles.errorText}>{errors.email}</span>
+              <span className="text-red-500 text-sm mt-1 block">
+                {errors.email}
+              </span>
             )}
           </div>
 
-          <div style={styles.formGroup}>
-            <label htmlFor="password" style={styles.label}>
+          <div className="mb-6">
+            <label
+              htmlFor="password"
+              className="block mb-2 font-medium text-gray-700 text-sm"
+            >
               Password
             </label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              style={{
-                ...styles.input,
-                ...styles.passwordInput,
-                ...(errors.password ? { borderColor: "#e53e3e" } : {}),
-                ...(document.activeElement ===
-                  document.getElementById("password") && !errors.password
-                  ? styles.inputFocus
-                  : {}),
-              }}
-              placeholder="Enter your password"
-            />
+            <div className="relative">
+              <input
+                type="password"
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                className={`w-full px-4 py-3 pr-10 rounded-lg border ${
+                  errors.password ? "border-red-500" : "border-gray-300"
+                } text-gray-700 bg-gray-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition`}
+                placeholder="Enter your password"
+              />
+            </div>
             {errors.password && (
-              <span style={styles.errorText}>{errors.password}</span>
+              <span className="text-red-500 text-sm mt-1 block">
+                {errors.password}
+              </span>
             )}
           </div>
 
-          <div style={styles.rememberContainer}>
+          <div className="flex items-center my-4">
             <input
               type="checkbox"
               id="remember"
-              style={styles.rememberCheckbox}
+              className="w-4 h-4 mr-2 cursor-pointer"
             />
-            <label htmlFor="remember" style={styles.rememberLabel}>
+            <label
+              htmlFor="remember"
+              className="text-gray-700 text-sm cursor-pointer"
+            >
               Remember me
             </label>
-            <a href="/forgot-password" style={styles.forgotPassword}>
+            <a
+              href="/forgot-password"
+              className="ml-auto text-blue-500 text-sm hover:underline"
+            >
               Forgot password?
             </a>
           </div>
 
           <button
             type="submit"
-            style={{
-              ...styles.button,
-              ...(isLoading ? styles.buttonDisabled : {}),
-              ...(!isLoading && { ":hover": styles.buttonHover }),
-            }}
             disabled={isLoading}
+            className={`w-full py-3.5 rounded-lg text-white font-semibold text-base mt-4 transition ${
+              isLoading
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-blue-500 hover:bg-blue-600"
+            }`}
           >
             {isLoading ? (
-              <div style={styles.loadingDots}>
-                <span style={{ ...styles.dot, ...styles.dot1 }}></span>
-                <span style={{ ...styles.dot, ...styles.dot2 }}></span>
-                <span style={styles.dot}></span>
+              <div className="inline-flex justify-center items-center w-20">
+                <span className="dot-bounce"></span>
+                <span className="dot-bounce delay-150"></span>
+                <span className="dot-bounce delay-300"></span>
               </div>
             ) : (
               "Sign In"
@@ -355,15 +194,46 @@ const Login = () => {
           </button>
         </form>
 
-        <div style={styles.footer}>
+        <div className="text-center mt-6 text-gray-600 text-base">
           <p>
             Don't have an account?{" "}
-            <a href="/register" style={styles.link}>
+            <a
+              href="/register"
+              className="text-blue-500 font-medium hover:underline"
+            >
               Sign Up
             </a>
           </p>
         </div>
       </div>
+
+      <style jsx>{`
+        .dot-bounce {
+          width: 10px;
+          height: 10px;
+          background-color: white;
+          border-radius: 50%;
+          display: inline-block;
+          animation: bounce 1.4s infinite ease-in-out both;
+          margin: 0 3px;
+        }
+        .delay-150 {
+          animation-delay: -0.16s;
+        }
+        .delay-300 {
+          animation-delay: -0.32s;
+        }
+        @keyframes bounce {
+          0%,
+          80%,
+          100% {
+            transform: scale(0);
+          }
+          40% {
+            transform: scale(1);
+          }
+        }
+      `}</style>
     </div>
   );
 };
