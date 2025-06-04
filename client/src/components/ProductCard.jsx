@@ -1,9 +1,12 @@
-// src/components/ProductCard.jsx
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
-const ProductCard = ({ product }) => {
-  const [isFavorite, setIsFavorite] = useState(false);
+const ProductCard = ({ product, initialIsFavorite = false }) => {
+  // Added initialIsFavorite prop
+  const [isFavorite, setIsFavorite] = useState(initialIsFavorite);
+  const [addingToCart, setAddingToCart] = useState(false);
+  const [togglingFavorite, setTogglingFavorite] = useState(false);
+  const navigate = useNavigate();
 
   if (!product) return null;
 
@@ -11,8 +14,18 @@ const ProductCard = ({ product }) => {
     e.preventDefault();
     e.stopPropagation();
 
+    const token = localStorage.getItem("token");
+    const userInfo = "gopi";
+
+    if (!userInfo) {
+      alert("Please log in to add items to your cart.");
+      navigate("/login");
+      return;
+    }
+    if (addingToCart) return;
+
+    setAddingToCart(true);
     try {
-      const token = localStorage.getItem("authToken");
       const response = await fetch("http://localhost:4040/api/cart/add", {
         method: "POST",
         headers: {
@@ -25,10 +38,20 @@ const ProductCard = ({ product }) => {
         }),
       });
 
-      if (!response.ok) throw new Error("Failed to add to cart");
-      // Handle success (e.g., show notification)
+      if (!response.ok) {
+        const errorData = await response
+          .json()
+          .catch(() => ({ message: "Failed to add to cart" }));
+        throw new Error(errorData.message || "Failed to add to cart");
+      }
+      const data = await response.json();
+      console.log("Added to cart:", data);
+      alert(`${product.name} added to cart!`);
     } catch (error) {
       console.error("Add to cart error:", error);
+      alert(`Error: ${error.message}`);
+    } finally {
+      setAddingToCart(false);
     }
   };
 
@@ -36,23 +59,49 @@ const ProductCard = ({ product }) => {
     e.preventDefault();
     e.stopPropagation();
 
+    const token = localStorage.getItem("token");
+    const userInfo = "gopi";
+
+    if (!userInfo) {
+      alert("Please log in to manage your favorites.");
+      navigate("/login");
+      return;
+    }
+    if (togglingFavorite) return;
+
+    setTogglingFavorite(true);
+    const targetIsFavorite = !isFavorite;
+
     try {
-      const token = localStorage.getItem("token");
+      const method = targetIsFavorite ? "POST" : "DELETE";
       const response = await fetch(
-        `http://localhost:4040/api/favorite/${product._id}`,
+        `http://localhost:4040/api/favourite/${product._id}`,
         {
-          method: "POST",
+          method: method,
           headers: {
+            "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
         }
       );
 
-      if (!response.ok) throw new Error("Failed to update favorites");
-      setIsFavorite(!isFavorite);
-      // Handle success
+      if (!response.ok) {
+        const errorData = await response
+          .json()
+          .catch(() => ({ message: "Failed to update favorites" }));
+        throw new Error(errorData.message || "Failed to update favorites");
+      }
+      setIsFavorite(targetIsFavorite);
+      alert(
+        targetIsFavorite
+          ? `${product.name} added to favorites!`
+          : `${product.name} removed from favorites!`
+      );
     } catch (error) {
       console.error("Favorite error:", error);
+      alert(`Error: ${error.message}`);
+    } finally {
+      setTogglingFavorite(false);
     }
   };
 
@@ -71,20 +120,24 @@ const ProductCard = ({ product }) => {
           </div>
         </Link>
 
-        {/* Action Buttons */}
-        <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <button
             onClick={handleToggleFavorite}
-            className="bg-white rounded-full p-2 shadow-md hover:bg-gray-50 transition-colors"
+            disabled={togglingFavorite}
+            className="bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-label={
+              isFavorite ? "Remove from favorites" : "Add to favorites"
+            }
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className={`h-5 w-5 ${
-                isFavorite ? "text-red-500 fill-current" : "text-gray-700"
+              className={`h-5 w-5 transition-colors duration-200 ${
+                isFavorite
+                  ? "text-red-500 fill-current"
+                  : "text-gray-500 hover:text-red-400"
               }`}
               viewBox="0 0 20 20"
-              fill={isFavorite ? "currentColor" : "none"}
-              stroke="currentColor"
+              fill="currentColor"
             >
               <path
                 fillRule="evenodd"
@@ -96,11 +149,13 @@ const ProductCard = ({ product }) => {
 
           <button
             onClick={handleAddToCart}
-            className="bg-white rounded-full p-2 shadow-md hover:bg-gray-50 transition-colors"
+            disabled={addingToCart || product.countInStock === 0}
+            className="bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-label="Add to cart"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 text-gray-700"
+              className="h-5 w-5 text-gray-500 hover:text-blue-500 transition-colors duration-200"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -116,10 +171,9 @@ const ProductCard = ({ product }) => {
         </div>
       </div>
 
-      {/* Product Info */}
       <div className="p-4 flex-grow flex flex-col">
         <Link to={`/product/${product._id}`}>
-          <h3 className="text-sm text-gray-700 truncate group-hover:text-blue-600 transition-colors duration-300">
+          <h3 className="text-sm text-gray-700 truncate group-hover:text-blue-600 transition-colors duration-300 h-10 mb-1 flex items-center">
             {product.name}
           </h3>
           <p className="mt-1 text-lg font-medium text-gray-900">
