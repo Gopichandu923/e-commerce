@@ -5,8 +5,8 @@ const categoriesData = [
   {
     image:
       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT8a2s93EJ5sRWo-csHhzUXSt4d194czTtfDA&s",
-    name: "men's clothing", // Used for query param and key
-    title: "Men's Clothing", // Used for display
+    name: "men's clothing",
+    title: "Men's Clothing",
   },
   {
     image:
@@ -16,14 +16,14 @@ const categoriesData = [
   },
   {
     image: "https://i.imgur.com/R3iobJA.jpeg",
-    name: "clothes", // Using a consistent 'name' for linking if 'garments' is just display
+    name: "clothes",
     title: "Garments",
   },
   {
     image:
       "https://www.polytechnichub.com/wp-content/uploads/2017/04/Electronic.jpg",
     title: "Electronics",
-    name: "electronics", // Keep 'name' consistent for query params
+    name: "electronics",
   },
   {
     image: "https://i.imgur.com/qNOjJje.jpeg",
