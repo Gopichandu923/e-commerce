@@ -183,23 +183,8 @@ const Navbar = ({ cartCount, darkMode, setDarkMode }) => {
           <div className="hidden md:flex items-center space-x-4 md:flex-none">
             {" "}
             {/* md:flex-none to prevent shrinking */}
-            <button
-              onClick={() => setDarkMode(!darkMode)}
-              className={`p-2 rounded-full transition-all duration-300 ${
-                darkMode
-                  ? "text-yellow-300 hover:bg-gray-700"
-                  : "text-gray-600 hover:bg-gray-200"
-              } hover:scale-110`}
-              aria-label="Toggle dark mode"
-            >
-              {darkMode ? (
-                <FiSun className="h-6 w-6" />
-              ) : (
-                <FiMoon className="h-6 w-6" />
-              )}
-            </button>
             <Link
-              to="/wishlist"
+              to="/favourite"
               className={`p-2 rounded-full relative transition-all duration-300 ${
                 darkMode
                   ? "text-gray-300 hover:bg-gray-700"
