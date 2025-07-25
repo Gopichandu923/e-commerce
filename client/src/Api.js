@@ -94,3 +94,21 @@ const AddItemToFavouriotes = async (token, id) =>
 // to remove item from the favourites
 const RemoveItemFromFavourites = async (token, id) =>
   await api.delete(`/favourite/${id}`);
+
+export {
+  Login,
+  Register,
+  GetAllProducts,
+  GetAllCategories,
+  GetProductById,
+  GetProductsByCategory,
+  GetProducts,
+  GetCartItems,
+  DeleteCartItem,
+  DeleteCartItems,
+  AddItemToCart,
+  UpdateCart,
+  GetFavouriteItems,
+  RemoveItemFromFavourites,
+  AddItemToFavouriotes,
+};

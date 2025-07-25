@@ -1,6 +1,8 @@
-import axios from "axios";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { login } from "../redux/auth/authActions.js";
+import { useSelector } from "react-redux";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -8,9 +10,17 @@ const Login = () => {
     email: "",
     password: "",
   });
+
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+
+  const user = useSelector((state) => state.auth.user);
+  useEffect(() => {
+    if (user) navigate("/");
+  }, [user, navigate]);
+
+  const dispatch = useDispatch();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -47,33 +57,8 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      const response = await axios.post(
-        "http://localhost:4040/api/user/login",
-        formData
-      );
-      if (response.status === 200) {
-        const user = response.data;
-        localStorage.setItem("token", user.token);
-      }
-      setSuccessMessage("Login successful! Redirecting to your profile...");
-      setTimeout(() => {
-        navigate("/");
-      }, 2000);
-    } catch (error) {
-      setErrors({
-        general: error.response?.data?.message || "An error occurred",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    validateForm();
+    dispatch(login(formData, navigate));
   };
 
   return (
