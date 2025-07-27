@@ -1,44 +1,37 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { login } from "../redux/auth/authActions.js";
-import { useSelector } from "react-redux";
 
 const Login = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
+  const dispatch = useDispatch();
 
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
 
-  const user = useSelector((state) => state.auth.user);
+  const {
+    user,
+    loading: isLoading,
+    error,
+    successMessage,
+  } = useSelector((state) => state.auth);
+
   useEffect(() => {
     if (user) navigate("/");
   }, [user, navigate]);
 
-  const dispatch = useDispatch();
-
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
+    setFormData({ ...formData, [name]: value });
+
     if (errors[name]) {
-      setErrors({
-        ...errors,
-        [name]: "",
-      });
+      setErrors({ ...errors, [name]: "" });
     }
   };
 
   const validateForm = () => {
     const newErrors = {};
-
     if (!formData.email.trim()) {
       newErrors.email = "Email is required";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
@@ -55,10 +48,11 @@ const Login = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    validateForm();
-    dispatch(login(formData, navigate));
+    if (validateForm()) {
+      dispatch(login(formData, navigate));
+    }
   };
 
   return (
@@ -79,9 +73,9 @@ const Login = () => {
           </div>
         )}
 
-        {errors.general && (
+        {error && (
           <div className="bg-red-400 text-white p-3 rounded-lg text-center mb-5 text-sm">
-            {errors.general}
+            {error}
           </div>
         )}
 
@@ -118,19 +112,17 @@ const Login = () => {
             >
               Password
             </label>
-            <div className="relative">
-              <input
-                type="password"
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                className={`w-full px-4 py-3 pr-10 rounded-lg border ${
-                  errors.password ? "border-red-500" : "border-gray-300"
-                } text-gray-700 bg-gray-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition`}
-                placeholder="Enter your password"
-              />
-            </div>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              className={`w-full px-4 py-3 pr-10 rounded-lg border ${
+                errors.password ? "border-red-500" : "border-gray-300"
+              } text-gray-700 bg-gray-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition`}
+              placeholder="Enter your password"
+            />
             {errors.password && (
               <span className="text-red-500 text-sm mt-1 block">
                 {errors.password}
