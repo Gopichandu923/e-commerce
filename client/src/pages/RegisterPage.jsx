@@ -1,10 +1,12 @@
-// src/components/Register.js
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { useDispatch, useSelector } from "react-redux";
+import { register } from "../redux/auth/authActions.js";
 
 const Register = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -12,116 +14,80 @@ const Register = () => {
     confirmPassword: "",
   });
   const [errors, setErrors] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
-  const [focusedField, setFocusedField] = useState(null);
+
+  const {
+    user,
+    loading: isLoading,
+    error,
+    successMessage,
+  } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    if (user) navigate("/");
+  }, [user, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
+    setFormData({ ...formData, [name]: value });
 
     if (errors[name]) {
-      setErrors({
-        ...errors,
-        [name]: "",
-      });
+      setErrors({ ...errors, [name]: "" });
     }
   };
 
   const validateForm = () => {
     const newErrors = {};
-
-    if (!formData.name.trim()) {
-      newErrors.name = "Name is required";
-    }
-
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    if (!formData.name.trim()) newErrors.name = "Name is required";
+    if (!formData.email.trim()) newErrors.email = "Email is required";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))
       newErrors.email = "Invalid email format";
-    }
-
-    if (!formData.password) {
-      newErrors.password = "Password is required";
-    } else if (formData.password.length < 6) {
+    if (!formData.password) newErrors.password = "Password is required";
+    else if (formData.password.length < 6)
       newErrors.password = "Password must be at least 6 characters";
-    }
 
-    if (formData.password !== formData.confirmPassword) {
+    if (formData.password !== formData.confirmPassword)
       newErrors.confirmPassword = "Passwords do not match";
-    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    if (!validateForm()) {
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      const response = await axios.post(
-        "http://localhost:4040/api/user",
-        formData
-      );
-
-      if (response.status === 201) {
-        const user = response.data;
-        localStorage.setItem("token", user.token);
-        setSuccessMessage(
-          "Account created successfully! Redirecting to login..."
-        );
-        setTimeout(() => {
-          navigate("/login");
-        }, 2000);
-      }
-    } catch (error) {
-      setErrors({
-        general:
-          error.response?.data?.message ||
-          "Registration failed. Please try again.",
-      });
-    } finally {
-      setIsLoading(false);
+    if (validateForm()) {
+      dispatch(register(formData, navigate));
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4 sm:p-6 lg:p-8">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-6 sm:p-8">
+    <div className="flex justify-center items-center min-h-screen bg-gray-50 p-5 font-sans">
+      <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-10 transition-all">
         <div className="text-center mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
-            Create an Account
+          <h1 className="text-2xl font-semibold text-gray-800 mb-2">
+            Create Your Account
           </h1>
-          <p className="text-gray-600">
-            Join us today to unlock exclusive features
+          <p className="text-gray-600 text-base">
+            Start your journey with us today
           </p>
         </div>
 
         {successMessage && (
-          <div className="bg-green-500 text-white p-3 rounded-lg mb-6 text-center">
+          <div className="bg-green-500 text-white p-3 rounded-lg text-center mb-5 text-sm">
             {successMessage}
           </div>
         )}
 
-        {errors.general && (
-          <div className="bg-red-500 text-white p-3 rounded-lg mb-6 text-center">
-            {errors.general}
+        {error && (
+          <div className="bg-red-400 text-white p-3 rounded-lg text-center mb-5 text-sm">
+            {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} autoComplete="off" className="space-y-5">
-          <div>
+        <form onSubmit={handleSubmit}>
+          <div className="mb-6">
             <label
               htmlFor="name"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block mb-2 text-sm font-medium text-gray-700"
             >
               Full Name
             </label>
@@ -129,29 +95,24 @@ const Register = () => {
               type="text"
               id="name"
               name="name"
-              autoComplete="off"
               value={formData.name}
               onChange={handleChange}
-              onFocus={() => setFocusedField("name")}
-              onBlur={() => setFocusedField(null)}
               className={`w-full px-4 py-3 rounded-lg border ${
-                errors.name
-                  ? "border-red-500"
-                  : focusedField === "name"
-                  ? "border-blue-500"
-                  : "border-gray-300"
-              } focus:outline-none bg-gray-50`}
+                errors.name ? "border-red-500" : "border-gray-300"
+              } text-gray-700 bg-gray-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition`}
               placeholder="John Doe"
             />
             {errors.name && (
-              <p className="mt-1 text-sm text-red-500">{errors.name}</p>
+              <span className="text-red-500 text-sm mt-1 block">
+                {errors.name}
+              </span>
             )}
           </div>
 
-          <div>
+          <div className="mb-6">
             <label
               htmlFor="email"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block mb-2 text-sm font-medium text-gray-700"
             >
               Email Address
             </label>
@@ -159,29 +120,24 @@ const Register = () => {
               type="email"
               id="email"
               name="email"
-              autoComplete="off"
               value={formData.email}
               onChange={handleChange}
-              onFocus={() => setFocusedField("email")}
-              onBlur={() => setFocusedField(null)}
               className={`w-full px-4 py-3 rounded-lg border ${
-                errors.email
-                  ? "border-red-500"
-                  : focusedField === "email"
-                  ? "border-blue-500"
-                  : "border-gray-300"
-              } focus:outline-none bg-gray-50`}
+                errors.email ? "border-red-500" : "border-gray-300"
+              } text-gray-700 bg-gray-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition`}
               placeholder="john@example.com"
             />
             {errors.email && (
-              <p className="mt-1 text-sm text-red-500">{errors.email}</p>
+              <span className="text-red-500 text-sm mt-1 block">
+                {errors.email}
+              </span>
             )}
           </div>
 
-          <div>
+          <div className="mb-6">
             <label
               htmlFor="password"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block mb-2 text-sm font-medium text-gray-700"
             >
               Password
             </label>
@@ -189,29 +145,24 @@ const Register = () => {
               type="password"
               id="password"
               name="password"
-              autoComplete="new-password"
               value={formData.password}
               onChange={handleChange}
-              onFocus={() => setFocusedField("password")}
-              onBlur={() => setFocusedField(null)}
               className={`w-full px-4 py-3 rounded-lg border ${
-                errors.password
-                  ? "border-red-500"
-                  : focusedField === "password"
-                  ? "border-blue-500"
-                  : "border-gray-300"
-              } focus:outline-none bg-gray-50`}
-              placeholder="At least 6 characters"
+                errors.password ? "border-red-500" : "border-gray-300"
+              } text-gray-700 bg-gray-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition`}
+              placeholder="Create a password"
             />
             {errors.password && (
-              <p className="mt-1 text-sm text-red-500">{errors.password}</p>
+              <span className="text-red-500 text-sm mt-1 block">
+                {errors.password}
+              </span>
             )}
           </div>
 
-          <div>
+          <div className="mb-6">
             <label
               htmlFor="confirmPassword"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block mb-2 text-sm font-medium text-gray-700"
             >
               Confirm Password
             </label>
@@ -219,50 +170,81 @@ const Register = () => {
               type="password"
               id="confirmPassword"
               name="confirmPassword"
-              autoComplete="new-password"
               value={formData.confirmPassword}
               onChange={handleChange}
-              onFocus={() => setFocusedField("confirmPassword")}
-              onBlur={() => setFocusedField(null)}
               className={`w-full px-4 py-3 rounded-lg border ${
-                errors.confirmPassword
-                  ? "border-red-500"
-                  : focusedField === "confirmPassword"
-                  ? "border-blue-500"
-                  : "border-gray-300"
-              } focus:outline-none bg-gray-50`}
+                errors.confirmPassword ? "border-red-500" : "border-gray-300"
+              } text-gray-700 bg-gray-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition`}
               placeholder="Re-enter your password"
             />
             {errors.confirmPassword && (
-              <p className="mt-1 text-sm text-red-500">
+              <span className="text-red-500 text-sm mt-1 block">
                 {errors.confirmPassword}
-              </p>
+              </span>
             )}
           </div>
 
           <button
             type="submit"
-            disabled={isLoading || successMessage}
-            className={`w-full py-3 px-4 rounded-lg font-medium text-white ${
-              isLoading || successMessage
+            disabled={isLoading}
+            className={`w-full py-3.5 rounded-lg text-white font-semibold text-base mt-4 transition ${
+              isLoading
                 ? "bg-gray-400 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700"
+                : "bg-blue-500 hover:bg-blue-600"
             }`}
           >
-            {isLoading ? "Creating Account..." : "Create Account"}
+            {isLoading ? (
+              <div className="inline-flex justify-center items-center w-20">
+                <span className="dot-bounce"></span>
+                <span className="dot-bounce delay-150"></span>
+                <span className="dot-bounce delay-300"></span>
+              </div>
+            ) : (
+              "Create Account"
+            )}
           </button>
         </form>
 
-        <div className="mt-6 text-center text-sm text-gray-600">
-          Already have an account?{" "}
-          <button
-            onClick={() => navigate("/login")}
-            className="font-medium text-blue-600 hover:text-blue-500"
-          >
-            Sign in
-          </button>
+        <div className="text-center mt-6 text-gray-600 text-base">
+          <p>
+            Already have an account?{" "}
+            <a
+              href="/login"
+              className="text-blue-500 font-medium hover:underline"
+            >
+              Sign In
+            </a>
+          </p>
         </div>
       </div>
+
+      <style jsx>{`
+        .dot-bounce {
+          width: 10px;
+          height: 10px;
+          background-color: white;
+          border-radius: 50%;
+          display: inline-block;
+          animation: bounce 1.4s infinite ease-in-out both;
+          margin: 0 3px;
+        }
+        .delay-150 {
+          animation-delay: -0.16s;
+        }
+        .delay-300 {
+          animation-delay: -0.32s;
+        }
+        @keyframes bounce {
+          0%,
+          80%,
+          100% {
+            transform: scale(0);
+          }
+          40% {
+            transform: scale(1);
+          }
+        }
+      `}</style>
     </div>
   );
 };
