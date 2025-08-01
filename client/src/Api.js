@@ -88,12 +88,20 @@ const GetFavouriteItems = async (token) =>
   });
 
 // to add item to favourites
-const AddItemToFavouriotes = async (token, id) =>
-  await api.post(`/favourite/${id}`);
+const AddItemToFavourites = async (token, id) =>
+  await api.post(`/favourite/${id}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 
 // to remove item from the favourites
 const RemoveItemFromFavourites = async (token, id) =>
-  await api.delete(`/favourite/${id}`);
+  await api.delete(`/favourite/${id}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 
 export {
   Login,
@@ -110,5 +118,5 @@ export {
   UpdateCart,
   GetFavouriteItems,
   RemoveItemFromFavourites,
-  AddItemToFavouriotes,
+  AddItemToFavourites,
 };
