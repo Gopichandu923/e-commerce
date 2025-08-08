@@ -16,38 +16,36 @@ const ProductCard = ({ product, initialIsFavorite = false }) => {
   const userInfo = token;
 
   if (!product) return null;
-
+  // Add to cart click handler
   const handleAddToCart = async (e) => {
     e.preventDefault();
     e.stopPropagation();
 
+    // Check if the user is logged in
     if (!userInfo) {
       alert("Please log in to add items to your cart.");
       navigate("/login");
       return;
     }
+
+    // Prevent duplicate clicks
     if (addingToCart) return;
 
     setAddingToCart(true);
     try {
       console.log(token);
-      const response = await AddItemToCart(token, product._id);
-      if (!response.ok) {
-        const errorData = await response
-          .json()
-          .catch(() => ({ message: "Failed to add to cart" }));
-        throw new Error(errorData.message || "Failed to add to cart");
-      }
-      const data = await response.json();
-      console.log("Added to cart:", data);
+      // Call API to add item to cart
+      const { data } = await AddItemToCart(token, product._id);
+      // Success message
       alert(`${product.name} added to cart!`);
     } catch (error) {
       console.error("Add to cart error:", error);
-      alert(`Error: ${error.message}`);
+      alert(`Error: ${error.response?.data?.message || error.message}`);
     } finally {
       setAddingToCart(false);
     }
   };
+
   const handleToggleFavorite = async (e) => {
     e.preventDefault();
     e.stopPropagation();
