@@ -6,11 +6,9 @@ const api = axios.create({
 //user
 
 // Login
-
 const Login = async (data) => await api.post("/user/login", data);
 
 // Signup
-
 const Register = async (data) => await api.post("/user", data);
 
 //products
@@ -22,7 +20,7 @@ const GetAllProducts = async () => await api.get("/product");
 const GetProductById = async (id) => await api.get(`/product/${id}`);
 
 //to get all categories
-const GetAllCategories = async () => await api.get("/product/categories/");
+const GetAllCategories = async () => await api.get("/product/categories");
 
 // to get products by categories
 const GetProductsByCategory = async (category) =>
@@ -51,24 +49,28 @@ const DeleteCartItems = async (token) =>
   });
 
 //to add item to cart
-
 const AddItemToCart = async (token, id) =>
-  await api.post(`/product/add`, {
-    productId: id,
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  await api.post(
+    `/product/add`,
+    { productId: id },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
 
 // to update the cart
-
 const UpdateCart = async (token, id, quantity) =>
-  await api.put(`/cart/${id}`, {
-    quantity: quantity,
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  await api.put(
+    `/cart/${id}`,
+    { quantity: quantity },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
 
 // to remove particular item from the cart
 const DeleteCartItem = async (token, id) =>
@@ -79,6 +81,7 @@ const DeleteCartItem = async (token, id) =>
   });
 
 //favourites
+
 // to get all favourites
 const GetFavouriteItems = async (token) =>
   await api.get("/favourite", {
@@ -89,11 +92,15 @@ const GetFavouriteItems = async (token) =>
 
 // to add item to favourites
 const AddItemToFavourites = async (token, id) =>
-  await api.post(`/favourite/${id}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  await api.post(
+    `/favourite/${id}`,
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
 
 // to remove item from the favourites
 const RemoveItemFromFavourites = async (token, id) =>
