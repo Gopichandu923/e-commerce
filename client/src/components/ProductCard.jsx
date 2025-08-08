@@ -1,5 +1,10 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import {
+  AddItemToCart,
+  AddItemToFavourites,
+  RemoveItemFromFavourites,
+} from "../Api";
 
 const ProductCard = ({ product, initialIsFavorite = false }) => {
   // Added initialIsFavorite prop
@@ -7,15 +12,14 @@ const ProductCard = ({ product, initialIsFavorite = false }) => {
   const [addingToCart, setAddingToCart] = useState(false);
   const [togglingFavorite, setTogglingFavorite] = useState(false);
   const navigate = useNavigate();
+  const token = JSON.parse(localStorage.getItem("user")).token;
+  const userInfo = token;
 
   if (!product) return null;
 
   const handleAddToCart = async (e) => {
     e.preventDefault();
     e.stopPropagation();
-
-    const token = localStorage.getItem("token");
-    const userInfo = "gopi";
 
     if (!userInfo) {
       alert("Please log in to add items to your cart.");
@@ -26,18 +30,8 @@ const ProductCard = ({ product, initialIsFavorite = false }) => {
 
     setAddingToCart(true);
     try {
-      const response = await fetch("http://localhost:4040/api/cart/add", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          productId: product._id,
-          quantity: 1,
-        }),
-      });
-
+      console.log(token);
+      const response = await AddItemToCart(token, product._id);
       if (!response.ok) {
         const errorData = await response
           .json()
@@ -54,13 +48,9 @@ const ProductCard = ({ product, initialIsFavorite = false }) => {
       setAddingToCart(false);
     }
   };
-
   const handleToggleFavorite = async (e) => {
     e.preventDefault();
     e.stopPropagation();
-
-    const token = localStorage.getItem("token");
-    const userInfo = "gopi";
 
     if (!userInfo) {
       alert("Please log in to manage your favorites.");
@@ -73,30 +63,31 @@ const ProductCard = ({ product, initialIsFavorite = false }) => {
     const targetIsFavorite = !isFavorite;
 
     try {
-      const method = targetIsFavorite ? "POST" : "DELETE";
-      const response = await fetch(
-        `http://localhost:4040/api/favourite/${product._id}`,
-        {
-          method: method,
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      console.log(token);
+      let response;
 
-      if (!response.ok) {
-        const errorData = await response
-          .json()
-          .catch(() => ({ message: "Failed to update favorites" }));
-        throw new Error(errorData.message || "Failed to update favorites");
+      if (targetIsFavorite) {
+        // Add to favourites
+        response = await AddItemToFavourites(token, product._id);
+      } else {
+        // Remove from favourites
+        response = await RemoveItemFromFavourites(token, product._id);
       }
+
+      // Axios responses have status + data
+      if (response.status !== 200) {
+        throw new Error(response.data?.message || "Failed to update favorites");
+      }
+
       setIsFavorite(targetIsFavorite);
+
       alert(
         targetIsFavorite
           ? `${product.name} added to favorites!`
           : `${product.name} removed from favorites!`
       );
+
+      console.log("Updated favorites list:", response.data.favorites);
     } catch (error) {
       console.error("Favorite error:", error);
       alert(`Error: ${error.message}`);
