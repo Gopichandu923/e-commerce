@@ -44,7 +44,8 @@ const removeFromFavorites = asyncHandler(async (req, res) => {
   }
 
   user.favorites = user.favorites.filter((id) => id.toString() !== productId);
-  const updatedUser = await user.save();
+  await user.save();
+  const updatedUser = await User.findById(userId).populate("favorites");
   console.log(updatedUser);
   res.status(200).json({
     message: "Product removed from favorites",
