@@ -51,7 +51,7 @@ const DeleteCartItems = async (token) =>
 //to add item to cart
 const AddItemToCart = async (token, id) =>
   await api.post(
-    `/product/add`,
+    `/cart/add`,
     { productId: id },
     {
       headers: {
