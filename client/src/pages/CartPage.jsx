@@ -1,6 +1,11 @@
-// src/components/Cart.js
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  GetCartItems,
+  UpdateCart,
+  DeleteCartItem,
+  DeleteCartItems,
+} from "../Api";
 
 const Cart = () => {
   const navigate = useNavigate();
@@ -10,23 +15,18 @@ const Cart = () => {
   const [successMessage, setSuccessMessage] = useState("");
   const [subtotal, setSubtotal] = useState(0);
 
+  const token = JSON.parse(localStorage.getItem("user")).token;
   const fetchCart = async () => {
     try {
       setLoading(true);
       setError("");
-      const response = await fetch("http://localhost:4040/api/cart", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
+      const response = await GetCartItems(token);
 
-      if (!response.ok) {
+      if (!response.status == 200) {
         throw new Error("Failed to fetch cart items");
       }
-
-      const data = await response.json();
-      setCartItems(data);
-      calculateSubtotal(data);
+      setCartItems(response.data);
+      calculateSubtotal(response.data);
     } catch (err) {
       setError(err.message || "Error loading cart");
     } finally {
@@ -48,16 +48,9 @@ const Cart = () => {
     try {
       setLoading(true);
       setError("");
-      const response = await fetch(`http://localhost:4040/api/cart/${itemId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({ quantity: newQuantity }),
-      });
+      const response = await UpdateCart(token, itemId, newQuantity);
 
-      if (!response.ok) {
+      if (response.status != 200) {
         throw new Error("Failed to update quantity");
       }
 
@@ -75,14 +68,9 @@ const Cart = () => {
     try {
       setLoading(true);
       setError("");
-      const response = await fetch(`http://localhost:4040/api/cart/${itemId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
+      const response = await DeleteCartItem(token, itemId);
 
-      if (!response.ok) {
+      if (response.status != 200) {
         throw new Error("Failed to remove item");
       }
 
@@ -100,17 +88,11 @@ const Cart = () => {
     try {
       setLoading(true);
       setError("");
-      const response = await fetch("http://localhost:4040/api/cart", {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
+      const response = await DeleteCartItems(token);
 
-      if (!response.ok) {
+      if (response.status != 200) {
         throw new Error("Failed to clear cart");
       }
-
       await fetchCart();
       setSuccessMessage("Cart cleared successfully");
       setTimeout(() => setSuccessMessage(""), 2000);
