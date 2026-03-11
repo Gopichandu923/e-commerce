@@ -48,7 +48,7 @@ const DeleteCartItems = async (token) =>
     },
   });
 
-//to add item to cart
+//to add items to cart
 const AddItemToCart = async (token, id) =>
   await api.post(
     `/cart/add`,
