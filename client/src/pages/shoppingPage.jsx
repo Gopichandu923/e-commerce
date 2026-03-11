@@ -183,9 +183,8 @@ const ShopPage = () => {
     <div className="container mx-auto p-4 sm:p-6 lg:p-8">
       <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-8 text-center">
         {routeCategory
-          ? `Products in ${
-              routeCategory.charAt(0).toUpperCase() + routeCategory.slice(1)
-            }`
+          ? `Products in ${routeCategory.charAt(0).toUpperCase() + routeCategory.slice(1)
+          }`
           : "Our Products"}
       </h1>
 
@@ -224,8 +223,8 @@ const ShopPage = () => {
               onChange={handleCategoryChange}
               className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white"
             >
-              {allAvailableCategories.map((cat) => (
-                <option key={cat} value={cat}>
+              {allAvailableCategories.map((cat, index) => (
+                <option key={index} value={cat}>
                   {cat === "all"
                     ? "All Categories"
                     : cat.charAt(0).toUpperCase() + cat.slice(1)}
