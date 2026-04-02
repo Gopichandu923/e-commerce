@@ -1,0 +1,105 @@
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-gray-900">Your Cart</h1>
+                <button (click)="goToHome()" class="text-indigo-600 hover:text-indigo-900 font-medium">
+                    Continue Shopping
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto py-8 sm:px-6 lg:px-8">
+        <div *ngIf="loading" class="text-center py-12">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+            <p class="mt-4 text-gray-600">Loading cart...</p>
+        </div>
+
+        <div *ngIf="error" class="text-center py-12">
+            <p class="text-red-600">{{ error }}</p>
+        </div>
+
+        <div *ngIf="!loading && !error && cartItems.length === 0" class="text-center py-12">
+            <p class="text-gray-600">Your cart is empty.</p>
+        </div>
+
+        <div *ngIf="!loading && !error && cartItems.length > 0" class="space-y-6">
+            <!-- Cart Items List -->
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                <ul role="list" class="divide-y divide-gray-200">
+                    <li *ngFor="let item of cartItems" class="p-4 sm:p-6">
+                        <div class="flex items-center space-x-4">
+                            <!-- Product Image -->
+                            <div class="flex-shrink-0 w-24 h-24 border border-gray-200 rounded-md overflow-hidden">
+                                <img [src]="item.image" [alt]="item.name" class="w-full h-full object-cover">
+                            </div>
+
+                            <div class="flex-1 min-w-0">
+                                <!-- Product Name -->
+                                <h3 class="text-lg font-medium text-gray-900">{{ item.name }}</h3>
+                                <p class="text-sm text-gray-500">{{ item.brand }}</p>
+
+                                <!-- Price -->
+                                <p class="mt-1 text-sm font-medium text-gray-900">${{ item.priceAtAddition }}</p>
+                            </div>
+
+                            <!-- Quantity Controls -->
+                            <div class="flex items-center space-x-2">
+                                <button (click)="updateQuantity(item._id, item.quantity - 1)"
+                                    class="p-2 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
+                                    [disabled]="item.quantity <= 1">
+                                    <svg class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24"
+                                        stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M20 12H4" />
+                                    </svg>
+                                </button>
+                                <span class="w-10 text-center border border-gray-300 rounded-md py-1">{{ item.quantity
+                                    }}</span>
+                                <button (click)="updateQuantity(item._id, item.quantity + 1)"
+                                    class="p-2 border border-gray-300 rounded-md hover:bg-gray-50">
+                                    <svg class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24"
+                                        stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- Remove Button -->
+                            <button (click)="removeItem(item._id)"
+                                class="ml-4 p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-md">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Cart Summary -->
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-lg font-medium text-gray-900">Subtotal</span>
+                        <span class="text-lg font-bold text-gray-900">${{ subtotal }}</span>
+                    </div>
+                    <p class="text-sm text-gray-500 mb-6">Shipping and taxes calculated at checkout.</p>
+                    <button (click)="checkout()"
+                        class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-4 rounded-md shadow-sm">
+                        Proceed to Checkout
+                    </button>
+                    <button (click)="clearCart()"
+                        class="w-full mt-3 bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-4 rounded-md shadow-sm">
+                        Clear Cart
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
