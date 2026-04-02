@@ -6,16 +6,17 @@ import {
   DeleteCartItem,
   DeleteCartItems,
 } from "../Api";
+import { getUserFromCookie } from "../utils/cookie.js";
+import toast from "react-hot-toast";
 
 const Cart = () => {
   const navigate = useNavigate();
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
   const [subtotal, setSubtotal] = useState(0);
 
-  const token = JSON.parse(localStorage.getItem("user")).token;
+  const token = getUserFromCookie()?.token;
   const fetchCart = async () => {
     try {
       setLoading(true);
@@ -55,8 +56,7 @@ const Cart = () => {
       }
 
       await fetchCart();
-      setSuccessMessage("Cart updated successfully");
-      setTimeout(() => setSuccessMessage(""), 2000);
+      toast.success("Cart updated successfully");
     } catch (err) {
       setError(err.message || "Error updating item");
     } finally {
@@ -75,8 +75,7 @@ const Cart = () => {
       }
 
       await fetchCart();
-      setSuccessMessage("Item removed successfully");
-      setTimeout(() => setSuccessMessage(""), 2000);
+      toast.success("Item removed successfully");
     } catch (err) {
       setError(err.message || "Error removing item");
     } finally {
@@ -94,8 +93,7 @@ const Cart = () => {
         throw new Error("Failed to clear cart");
       }
       await fetchCart();
-      setSuccessMessage("Cart cleared successfully");
-      setTimeout(() => setSuccessMessage(""), 2000);
+      toast.success("Cart cleared successfully");
     } catch (err) {
       setError(err.message || "Error clearing cart");
     } finally {
@@ -131,12 +129,6 @@ const Cart = () => {
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
           {error}
-        </div>
-      )}
-
-      {successMessage && (
-        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-          {successMessage}
         </div>
       )}
 

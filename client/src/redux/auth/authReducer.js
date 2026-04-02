@@ -1,9 +1,9 @@
-const user = localStorage.getItem("user")
-  ? JSON.parse(localStorage.getItem("user"))
-  : null;
+import { getUserFromCookie } from "../../utils/cookie.js";
+
+const user = getUserFromCookie();
 
 const initialState = {
-  user: user || null,
+  user: user,
   loading: false,
   error: null,
   successMessage: null,

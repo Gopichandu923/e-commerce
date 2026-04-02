@@ -5,6 +5,8 @@ import {
   AddItemToFavourites,
   RemoveItemFromFavourites,
 } from "../Api";
+import { getUserFromCookie } from "../utils/cookie.js";
+import toast from "react-hot-toast";
 
 const ProductCard = ({ product, initialIsFavorite = false }) => {
   // Added initialIsFavorite prop
@@ -12,7 +14,7 @@ const ProductCard = ({ product, initialIsFavorite = false }) => {
   const [addingToCart, setAddingToCart] = useState(false);
   const [togglingFavorite, setTogglingFavorite] = useState(false);
   const navigate = useNavigate();
-  const token = JSON.parse(localStorage.getItem("user"))?.token;
+  const token = getUserFromCookie()?.token;
   const userInfo = token;
 
   if (!product) return null;
@@ -23,7 +25,7 @@ const ProductCard = ({ product, initialIsFavorite = false }) => {
 
     // Check if the user is logged in
     if (!userInfo) {
-      alert("Please log in to add items to your cart.");
+      toast.error("Please log in to add items to your cart.");
       navigate("/login");
       return;
     }
@@ -37,10 +39,10 @@ const ProductCard = ({ product, initialIsFavorite = false }) => {
       // Call API to add item to cart
       const { data } = await AddItemToCart(token, product._id);
       // Success message
-      alert(`${product.name} added to cart!`);
+      toast.success(`${product.name} added to cart!`);
     } catch (error) {
       console.error("Add to cart error:", error);
-      alert(`Error: ${error.response?.data?.message || error.message}`);
+      toast.error(`Error: ${error.response?.data?.message || error.message}`);
     } finally {
       setAddingToCart(false);
     }
@@ -51,7 +53,7 @@ const ProductCard = ({ product, initialIsFavorite = false }) => {
     e.stopPropagation();
 
     if (!userInfo) {
-      alert("Please log in to manage your favorites.");
+      toast.error("Please log in to manage your favorites.");
       navigate("/login");
       return;
     }
@@ -79,16 +81,16 @@ const ProductCard = ({ product, initialIsFavorite = false }) => {
 
       setIsFavorite(targetIsFavorite);
 
-      alert(
-        targetIsFavorite
-          ? `${product.name} added to favorites!`
-          : `${product.name} removed from favorites!`
-      );
+      if (targetIsFavorite) {
+        toast.success(`${product.name} added to favorites!`);
+      } else {
+        toast.success(`${product.name} removed from favorites!`);
+      }
 
       console.log("Updated favorites list:", response.data.favorites);
     } catch (error) {
       console.error("Favorite error:", error);
-      alert(`Error: ${error.message}`);
+      toast.error(`Error: ${error.message}`);
     } finally {
       setTogglingFavorite(false);
     }

@@ -11,10 +11,10 @@ import {
 } from "react-icons/fi";
 import Rating from "../components/Rating";
 import ProductCard from "../components/ProductCard";
+import { getUserFromCookie } from "../utils/cookie.js";
+import toast from "react-hot-toast";
 
 const API_BASE_URL = "http://localhost:4040/api";
-const USER_AUTH_TOKEN = localStorage.getItem("token");
-const USER_INFO = "gopi"; // Placeholder for logged-in user
 
 const ProductDetailPage = () => {
   const { productId } = useParams();
@@ -35,11 +35,13 @@ const ProductDetailPage = () => {
   const [error, setError] = useState(null);
 
   const axiosInstance = useMemo(() => {
+    const user = getUserFromCookie();
+    const token = user?.token;
     return axios.create({
       baseURL: API_BASE_URL,
       headers: {
         "Content-Type": "application/json",
-        ...(USER_AUTH_TOKEN && { Authorization: `Bearer ${USER_AUTH_TOKEN}` }),
+        ...(token && { Authorization: `Bearer ${token}` }),
       },
     });
   }, []);
@@ -95,8 +97,9 @@ const ProductDetailPage = () => {
   };
 
   const addToCartHandler = async () => {
+    const USER_INFO = getUserFromCookie();
     if (!USER_INFO) {
-      alert("Please log in to add items to your cart.");
+      toast.error("Please log in to add items to your cart.");
       navigate("/login");
       return;
     }
@@ -105,17 +108,18 @@ const ProductDetailPage = () => {
         productId: product._id,
         quantity,
       });
-      alert(`${quantity} x ${product.name} added to cart!`);
+      toast.success(`${quantity} x ${product.name} added to cart!`);
     } catch (err) {
-      alert(
+      toast.error(
         `Failed to add to cart: ${err.response?.data?.message || err.message}`
       );
     }
   };
 
   const addToFavoriteHandler = async () => {
+    const USER_INFO = getUserFromCookie();
     if (!USER_INFO) {
-      alert("Please log in to add to favorites.");
+      toast.error("Please log in to add to favorites.");
       navigate("/login");
       return;
     }
@@ -124,16 +128,16 @@ const ProductDetailPage = () => {
     setFavoriteProcessing(true);
     try {
       await axiosInstance.post(`/favourite/${product._id}`);
-      alert(`${product.name} added to favorites.`);
+      toast.success(`${product.name} added to favorites.`);
     } catch (err) {
       if (
         err.response &&
         err.response.status === 400 &&
         err.response.data.message === "Product already in favorites"
       ) {
-        alert("This product is already in your favorites!");
+        toast.error("This product is already in your favorites!");
       } else {
-        alert(
+        toast.error(
           `Failed to add to favorites: ${
             err.response?.data?.message || err.message
           }`
@@ -146,8 +150,9 @@ const ProductDetailPage = () => {
 
   const submitReviewHandler = async (e) => {
     e.preventDefault();
+    const USER_INFO = getUserFromCookie();
     if (!USER_INFO) {
-      alert("Please log in to submit a review.");
+      toast.error("Please log in to submit a review.");
       navigate("/login");
       return;
     }
@@ -321,7 +326,7 @@ const ProductDetailPage = () => {
       </div>
 
       {/* Write a Review */}
-      {USER_INFO ? (
+      {getUserFromCookie() ? (
         <div className="p-6 bg-white rounded-lg shadow-md">
           <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
             <FiMessageSquare className="mr-2 h-6 w-6 text-blue-500" />

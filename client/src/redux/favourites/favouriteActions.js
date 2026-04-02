@@ -4,6 +4,7 @@ import {
   RemoveItemFromFavourites,
 } from "../../Api.js";
 import toast from "react-hot-toast";
+import { getUserFromCookie } from "../../utils/cookie.js";
 
 // Get all favourites
 export const getFavourites = () => {
@@ -11,7 +12,7 @@ export const getFavourites = () => {
     dispatch({ type: "GET_FAVOURITES_REQUEST" });
 
     try {
-      const user = JSON.parse(localStorage.getItem("user"));
+      const user = getUserFromCookie();
       const token = user?.token;
       const response = await GetFavouriteItems(token);
       dispatch({
@@ -32,7 +33,7 @@ export const getFavourites = () => {
 export const addToFavourites = (item) => {
   return async (dispatch) => {
     try {
-      const user = JSON.parse(localStorage.getItem("user"));
+      const user = getUserFromCookie();
       const token = user?.token;
       const response = await AddItemToFavourites(token, item); // returns updated favourites
       dispatch({ type: "SET_FAVOURITES", payload: response.data.favorites });
@@ -47,7 +48,7 @@ export const addToFavourites = (item) => {
 export const removeFromFavourites = (itemId) => {
   return async (dispatch) => {
     try {
-      const user = JSON.parse(localStorage.getItem("user"));
+      const user = getUserFromCookie();
       const token = user?.token;
       const response = await RemoveItemFromFavourites(token, itemId); // returns updated favourites
       console.log(response.data);
