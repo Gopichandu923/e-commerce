@@ -1,47 +1,45 @@
 <div class="bg-gray-50 min-h-screen">
     <main class="overflow-hidden">
-        <!-- Hero Section -->
-        <div class="relative bg-cover bg-center text-white py-32 md:py-48 px-6 shadow-lg"
-            style="background-image: url('https://images.unsplash.com/photo-1505740420928...')">
-            <div class="absolute inset-0 bg-gradient-to-r from-black/70 to-black/40"></div>
-            <div class="relative container mx-auto text-center max-w-4xl">
-                <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6 leading-tight tracking-tight">Discover
-                    Your Next Favorite</h1>
-                <a routerLink="/shop"
-                    class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-10 rounded-full text-lg shadow-lg">Shop
-                    Now</a>
+        <div class="relative bg-cover bg-center text-white py-32 px-6 shadow-lg"
+            style="background-image: url('https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=1600')">
+            <div class="absolute inset-0 bg-black/50"></div>
+            <div class="relative container mx-auto text-center">
+                <h1 class="text-5xl font-extrabold mb-6 leading-tight">Discover Your Next Favorite</h1>
+                <a routerLink="/products"
+                    class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-10 rounded-full transition-transform hover:scale-105">
+                    Shop Now
+                </a>
             </div>
         </div>
 
-        <!-- Category Showcase -->
-        <section class="py-16 bg-gradient-to-b from-gray-50 to-white">
-            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="text-center mb-14">
-                    <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-3">Explore Our Collections</h2>
-                    <div class="w-20 h-1 bg-blue-500 mx-auto rounded-full"></div>
+        <section class="py-16">
+            <div class="container mx-auto px-4">
+                <div class="text-center mb-10">
+                    <h2 class="text-3xl font-bold text-gray-900">Explore Our Collections</h2>
+                    <div class="w-16 h-1 bg-blue-500 mx-auto mt-2"></div>
                 </div>
 
-                <div *ngIf="categoriesData.length > 0; else noCategories"
-                    class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 md:gap-8">
+                <div *ngIf="categoriesData && categoriesData.length > 0; else noCategories"
+                    class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
 
-                    <a *ngFor="let category of categoriesData" [routerLink]="['/shop']"
-                        [queryParams]="{category: encodeCategory(category.name)}"
-                        class="group flex flex-col bg-white rounded-2xl shadow-lg overflow-hidden transition-all duration-300 hover:-translate-y-2 border border-gray-100">
-                        <div class="h-48 w-full overflow-hidden">
+                    <a *ngFor="let category of categoriesData" [routerLink]="['/products']"
+                        [queryParams]="{ category: encodeCategory(category.name) }"
+                        class="group bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 transition-all hover:-translate-y-1">
+
+                        <div class="h-48 overflow-hidden">
                             <img [src]="category.image" [alt]="category.title" (error)="handleImageError($event)"
-                                class="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-110" />
+                                class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                         </div>
-                        <div class="p-5 text-center">
-                            <h3
-                                class="text-xl font-bold text-gray-800 group-hover:text-blue-600 transition-colors duration-300">
-                                {{ category.title }}</h3>
+
+                        <div
+                            class="p-5 text-center font-bold text-xl text-gray-800 group-hover:text-blue-600 transition-colors">
+                            {{ category.title }}
                         </div>
                     </a>
-
                 </div>
 
                 <ng-template #noCategories>
-                    <p class="text-center text-gray-600 text-lg">No categories to display at the moment.</p>
+                    <p class="text-center text-gray-600">No categories to display at the moment.</p>
                 </ng-template>
             </div>
         </section>
