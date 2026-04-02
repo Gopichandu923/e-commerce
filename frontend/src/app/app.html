@@ -1,4 +1,10 @@
-<main class="main">
-  <h1>Welcome to E-Commerce</h1>
-</main>
-<router-outlet />
+<div class="app-container">
+  <app-navbar></app-navbar>
+
+  <main class="main-content min-h-screen">
+    <!-- This replaces the <Routes> element and dynamically injects the page -->
+    <router-outlet></router-outlet>
+  </main>
+
+  <app-footer></app-footer>
+</div>
