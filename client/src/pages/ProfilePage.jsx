@@ -5,6 +5,7 @@ import { getUserFromCookie } from "../utils/cookie.js";
 import { GetMyOrders, GetAddresses, AddAddress, UpdateAddress, DeleteAddress, SetMainAddress } from "../Api.js";
 import { logout } from "../redux/auth/authActions";
 import toast from "react-hot-toast";
+import AddProductPage from "./AddProductPage.jsx";
 
 const ProfilePage = ({ darkMode = false }) => {
   const navigate = useNavigate();
@@ -207,6 +208,7 @@ const ProfilePage = ({ darkMode = false }) => {
     { id: "profile", label: "Profile", icon: "👤" },
     { id: "orders", label: "My Orders", icon: "📦" },
     { id: "addresses", label: "Addresses", icon: "📍" },
+    { id: "addProduct", label: "Add Product", icon: "➕" },
   ];
 
   const renderContent = () => {
@@ -337,6 +339,9 @@ const ProfilePage = ({ darkMode = false }) => {
             )}
           </div>
         );
+
+      case "addProduct":
+        return <AddProductPage darkMode={darkMode} />;
 
       default:
         return null;
