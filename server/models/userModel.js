@@ -108,7 +108,7 @@ const userSchema = mongoose.Schema(
         },
         country: {
           type: String,
-          default: "United States",
+          default: "India",
           trim: true,
         },
         phone: {
