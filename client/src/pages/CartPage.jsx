@@ -1,109 +1,37 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import {
-  GetCartItems,
-  UpdateCart,
-  DeleteCartItem,
-  DeleteCartItems,
-} from "../Api";
+import React, { useEffect, useMemo } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { getCartItems, updateCartItem, removeCartItem, clearCart } from "../redux/cart/cartSlice";
 import { getUserFromCookie } from "../utils/cookie.js";
-import toast from "react-hot-toast";
 
 const Cart = () => {
   const navigate = useNavigate();
-  const [cartItems, setCartItems] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [subtotal, setSubtotal] = useState(0);
+  const dispatch = useDispatch();
+  
+  const { cartItems, loading, error } = useSelector((state) => state.cart);
+  const currentUser = useMemo(() => getUserFromCookie(), []);
+  const token = currentUser?.token;
 
-  const token = getUserFromCookie()?.token;
-  const fetchCart = async () => {
-    try {
-      setLoading(true);
-      setError("");
-      const response = await GetCartItems(token);
-
-      if (!response.status == 200) {
-        throw new Error("Failed to fetch cart items");
-      }
-      setCartItems(response.data);
-      calculateSubtotal(response.data);
-    } catch (err) {
-      setError(err.message || "Error loading cart");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const calculateSubtotal = (items) => {
-    const total = items.reduce(
-      (sum, item) => sum + item.priceAtAddition * item.quantity,
-      0
-    );
-    setSubtotal(total);
-  };
-
-  const updateQuantity = async (itemId, newQuantity) => {
-    if (newQuantity < 1) return;
-
-    try {
-      setLoading(true);
-      setError("");
-      const response = await UpdateCart(token, itemId, newQuantity);
-
-      if (response.status != 200) {
-        throw new Error("Failed to update quantity");
-      }
-
-      await fetchCart();
-      toast.success("Cart updated successfully");
-    } catch (err) {
-      setError(err.message || "Error updating item");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const removeItem = async (itemId) => {
-    try {
-      setLoading(true);
-      setError("");
-      const response = await DeleteCartItem(token, itemId);
-
-      if (response.status != 200) {
-        throw new Error("Failed to remove item");
-      }
-
-      await fetchCart();
-      toast.success("Item removed successfully");
-    } catch (err) {
-      setError(err.message || "Error removing item");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const clearCart = async () => {
-    try {
-      setLoading(true);
-      setError("");
-      const response = await DeleteCartItems(token);
-
-      if (response.status != 200) {
-        throw new Error("Failed to clear cart");
-      }
-      await fetchCart();
-      toast.success("Cart cleared successfully");
-    } catch (err) {
-      setError(err.message || "Error clearing cart");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const subtotal = useMemo(() => {
+    return cartItems.reduce((sum, item) => sum + item.priceAtAddition * item.quantity, 0);
+  }, [cartItems]);
 
   useEffect(() => {
-    fetchCart();
-  }, []);
+    dispatch(getCartItems());
+  }, [dispatch]);
+
+  const handleUpdateQuantity = (itemId, newQuantity) => {
+    if (newQuantity < 1) return;
+    dispatch(updateCartItem(itemId, newQuantity));
+  };
+
+  const handleRemoveItem = (itemId) => {
+    dispatch(removeCartItem(itemId));
+  };
+
+  const handleClearCart = () => {
+    dispatch(clearCart());
+  };
 
   return (
     <div className="max-w-6xl mx-auto p-4 sm:p-6">
@@ -113,7 +41,7 @@ const Cart = () => {
         </h1>
         {cartItems.length > 0 && (
           <button
-            onClick={clearCart}
+            onClick={handleClearCart}
             disabled={loading}
             className={`px-4 py-2 rounded-md font-medium ${
               loading
@@ -143,18 +71,28 @@ const Cart = () => {
             Your cart is empty
           </h2>
           <p className="text-gray-600 mb-6">
-            Start shopping to add items to your cart
+            {token
+              ? "Start shopping to add items to your cart"
+              : "Sign in to save your cart"}
           </p>
-          <button
-            onClick={() => navigate("/")}
-            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-          >
-            Continue Shopping
-          </button>
+          {token ? (
+            <Link
+              to="/"
+              className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            >
+              Continue Shopping
+            </Link>
+          ) : (
+            <Link
+              to="/login"
+              className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            >
+              Sign In
+            </Link>
+          )}
         </div>
       ) : (
         <div className="flex flex-col lg:flex-row gap-6">
-          {/* Cart Items */}
           <div className="flex-1">
             {cartItems.map((item) => (
               <div
@@ -184,7 +122,7 @@ const Cart = () => {
                     </div>
 
                     <button
-                      onClick={() => removeItem(item._id)}
+                      onClick={() => handleRemoveItem(item._id)}
                       disabled={loading}
                       className={`px-3 py-1.5 text-sm font-medium rounded ${
                         loading
@@ -199,7 +137,7 @@ const Cart = () => {
                   <div className="flex items-center mt-3">
                     <button
                       onClick={() =>
-                        updateQuantity(item._id, item.quantity - 1)
+                        handleUpdateQuantity(item._id, item.quantity - 1)
                       }
                       disabled={item.quantity <= 1 || loading}
                       className={`w-8 h-8 rounded-md flex items-center justify-center ${
@@ -219,7 +157,7 @@ const Cart = () => {
                       onChange={(e) => {
                         const newQuantity = parseInt(e.target.value);
                         if (!isNaN(newQuantity)) {
-                          updateQuantity(item._id, newQuantity);
+                          handleUpdateQuantity(item._id, newQuantity);
                         }
                       }}
                       disabled={loading}
@@ -227,7 +165,7 @@ const Cart = () => {
 
                     <button
                       onClick={() =>
-                        updateQuantity(item._id, item.quantity + 1)
+                        handleUpdateQuantity(item._id, item.quantity + 1)
                       }
                       disabled={loading}
                       className={`w-8 h-8 rounded-md flex items-center justify-center ${
@@ -244,7 +182,6 @@ const Cart = () => {
             ))}
           </div>
 
-          {/* Order Summary */}
           <div className="lg:w-80">
             <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm sticky top-6">
               <h2 className="text-xl font-bold text-gray-800 mb-4">
