@@ -31,18 +31,7 @@ const addOrderItems = asyncHandler(async (req, res) => {
 
   const createdOrder = await order.save();
 
-  res.status(201).json(createdOrder);
-});
-    itemsPrice,
-    taxPrice,
-    shippingPrice,
-    totalPrice,
-  });
-
-  // Save order and update product stock
-  const createdOrder = await order.save();
-
-  // Update product quantities
+  // Update product stock
   await Promise.all(
     order.orderItems.map(async (item) => {
       await Product.updateOne(
@@ -65,13 +54,26 @@ const getOrderById = asyncHandler(async (req, res) => {
     throw new Error("Order not found");
   }
 
-  // Check authorization
   if (!req.user.isAdmin && !order.user._id.equals(req.user._id)) {
     res.status(401);
     throw new Error("Not authorized");
   }
 
   res.json(order);
+});
+
+const getMyOrders = asyncHandler(async (req, res) => {
+  const orders = await Order.find({ user: req.user._id }).sort({
+    createdAt: -1,
+  });
+  res.json(orders);
+});
+
+const getOrders = asyncHandler(async (req, res) => {
+  const orders = await Order.find({})
+    .populate("user", "id name")
+    .sort({ createdAt: -1 });
+  res.json(orders);
 });
 
 const updateOrderToPaid = asyncHandler(async (req, res) => {
@@ -82,22 +84,14 @@ const updateOrderToPaid = asyncHandler(async (req, res) => {
     throw new Error("Order not found");
   }
 
-  // Verify order belongs to user or admin
-  if (!req.user.isAdmin && !order.user.equals(req.user._id)) {
-    res.status(401);
-    throw new Error("Not authorized");
-  }
-
   order.isPaid = true;
   order.paidAt = Date.now();
   order.paymentResult = {
     id: req.body.id,
     status: req.body.status,
     update_time: req.body.update_time,
-    email_address: req.body.payer?.email_address,
-    currency: req.body.currency,
+    email_address: req.body.email_address,
   };
-  order.status = "Processing"; // Update status
 
   const updatedOrder = await order.save();
   res.json(updatedOrder);
@@ -119,25 +113,11 @@ const updateOrderToDelivered = asyncHandler(async (req, res) => {
   res.json(updatedOrder);
 });
 
-const getMyOrders = asyncHandler(async (req, res) => {
-  const orders = await Order.find({ user: req.user._id }).sort({
-    createdAt: -1,
-  });
-  res.json(orders);
-});
-
-const getOrders = asyncHandler(async (req, res) => {
-  const orders = await Order.find({})
-    .populate("user", "id name")
-    .sort({ createdAt: -1 });
-  res.json(orders);
-});
-
 export {
   addOrderItems,
   getOrderById,
-  updateOrderToPaid,
-  updateOrderToDelivered,
   getMyOrders,
   getOrders,
+  updateOrderToPaid,
+  updateOrderToDelivered,
 };
