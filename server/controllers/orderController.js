@@ -3,52 +3,36 @@ import Order from "../models/orderModel.js";
 import Product from "../models/productModel.js";
 
 const addOrderItems = asyncHandler(async (req, res) => {
-  const { orderItems, shippingAddress, paymentMethod } = req.body;
+  const { orderItems, shippingAddress, paymentMethod, itemsPrice, taxPrice, shippingPrice, totalPrice } = req.body;
 
   if (!orderItems || orderItems.length === 0) {
     res.status(400);
     throw new Error("No order items");
   }
 
-  // Verify products exist and are in stock
-  const products = await Product.find({
-    _id: { $in: orderItems.map((item) => item.product) },
-  });
-
-  if (products.length !== orderItems.length) {
-    res.status(400);
-    throw new Error("One or more products not found");
-  }
-
-  // Check stock and prepare order items
-  const verifiedOrderItems = orderItems.map((item) => {
-    const product = products.find((p) => p._id.equals(item.product));
-    if (!product || product.countInStock < item.qty) {
-      throw new Error(`Product ${product?.name} is out of stock`);
-    }
-    return {
-      name: product.name,
-      qty: item.qty,
-      image: product.image,
-      price: product.price,
-      product: product._id,
-    };
-  });
-
-  // Calculate prices
-  const itemsPrice = verifiedOrderItems.reduce(
-    (acc, item) => acc + item.price * item.qty,
-    0
-  );
-  const taxPrice = Number((0.15 * itemsPrice).toFixed(2)); // Example 15% tax
-  const shippingPrice = itemsPrice > 100 ? 0 : 10; // Free shipping over $100
-  const totalPrice = itemsPrice + taxPrice + shippingPrice;
+  const verifiedOrderItems = orderItems.map((item) => ({
+    name: item.name,
+    qty: item.qty,
+    image: item.image,
+    price: item.price,
+    product: item.productId || item.product,
+  }));
 
   const order = new Order({
     user: req.user._id,
     orderItems: verifiedOrderItems,
     shippingAddress,
     paymentMethod,
+    itemsPrice: itemsPrice || 0,
+    taxPrice: taxPrice || 0,
+    shippingPrice: shippingPrice || 0,
+    totalPrice: totalPrice || 0,
+  });
+
+  const createdOrder = await order.save();
+
+  res.status(201).json(createdOrder);
+});
     itemsPrice,
     taxPrice,
     shippingPrice,
