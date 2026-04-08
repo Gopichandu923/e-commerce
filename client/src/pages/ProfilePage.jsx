@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { getUserFromCookie } from "../utils/cookie.js";
 import { GetMyOrders, GetAddresses, AddAddress, UpdateAddress, DeleteAddress, SetMainAddress } from "../Api.js";
+import { logout } from "../redux/auth/authActions";
 import toast from "react-hot-toast";
 
 const ProfilePage = ({ darkMode = false }) => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { user: reduxUser } = useSelector((state) => state.auth);
   const currentUser = reduxUser || getUserFromCookie();
   const [activeTab, setActiveTab] = useState("profile");
@@ -235,6 +237,19 @@ const ProfilePage = ({ darkMode = false }) => {
                 </div>
               </div>
             </div>
+            <button
+              onClick={() => {
+                dispatch(logout());
+                navigate("/login");
+              }}
+              className={`w-full py-3 rounded-lg font-medium transition-colors ${
+                darkMode 
+                  ? "bg-red-600 text-white hover:bg-red-700" 
+                  : "bg-red-500 text-white hover:bg-red-600"
+              }`}
+            >
+              Logout
+            </button>
           </div>
         );
 
