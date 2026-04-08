@@ -156,24 +156,77 @@ const getProductsByCategory = asyncHandler(async (req, res) => {
 });
 
 const seacrhProducts = asyncHandler(async (req, res) => {
-  const keywordQuery = req.query.keyword;
+  const {
+    keyword,
+    page = 1,
+    limit = 20,
+    sort = "newest",
+    minPrice,
+    maxPrice,
+    category,
+    brand,
+  } = req.query;
 
-  if (!keywordQuery || keywordQuery.trim() === "") {
+  if (!keyword || keyword.trim() === "") {
     res.status(400).json({ message: "Please provide a search keyword." });
     return;
   }
 
-  const searchCriteria = {
+  const pageNumber = parseInt(page) || 1;
+  const limitNumber = parseInt(limit) || 20;
+  const skip = (pageNumber - 1) * limitNumber;
+
+  const query = {
     $or: [
-      { name: { $regex: keywordQuery, $options: "i" } },
-      { description: { $regex: keywordQuery, $options: "i" } },
-      { category: { $regex: keywordQuery, $options: "i" } },
-      { brand: { $regex: keywordQuery, $options: "i" } },
+      { name: { $regex: keyword, $options: "i" } },
+      { description: { $regex: keyword, $options: "i" } },
+      { category: { $regex: keyword, $options: "i" } },
+      { brand: { $regex: keyword, $options: "i" } },
     ],
   };
-  const products = await Product.find(searchCriteria).sort({ createdAt: -1 });
 
-  res.json(products);
+  if (minPrice || maxPrice) {
+    query.price = {};
+    if (minPrice) query.price.$gte = parseFloat(minPrice);
+    if (maxPrice) query.price.$lte = parseFloat(maxPrice);
+  }
+
+  if (category) {
+    query.category = { $regex: category, $options: "i" };
+  }
+
+  if (brand) {
+    query.brand = { $regex: brand, $options: "i" };
+  }
+
+  let sortOption = {};
+  switch (sort) {
+    case "price-asc":
+      sortOption = { price: 1 };
+      break;
+    case "price-desc":
+      sortOption = { price: -1 };
+      break;
+    case "rating":
+      sortOption = { rating: -1 };
+      break;
+    case "newest":
+    default:
+      sortOption = { createdAt: -1 };
+  }
+
+  const totalProducts = await Product.countDocuments(query);
+  const products = await Product.find(query)
+    .sort(sortOption)
+    .skip(skip)
+    .limit(limitNumber);
+
+  res.json({
+    products,
+    page: pageNumber,
+    pages: Math.ceil(totalProducts / limitNumber),
+    totalProducts,
+  });
 });
 
 export {
