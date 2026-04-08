@@ -3,6 +3,18 @@ import axios from "axios";
 const api = axios.create({
   baseURL: "http://localhost:4040/api",
 });
+
+// Helper for multipart form data
+const createFormData = (data) => {
+  const formData = new FormData();
+  Object.keys(data).forEach((key) => {
+    if (data[key] !== null && data[key] !== undefined) {
+      formData.append(key, data[key]);
+    }
+  });
+  return formData;
+};
+
 //user
 
 // Login
@@ -25,6 +37,26 @@ const GetAllCategories = async () => await api.get("/product/categories");
 // to get products by categories
 const GetProductsByCategory = async (category) =>
   await api.get(`/product/category/${category}`);
+
+// upload product image
+const UploadProductImage = async (token, file) => {
+  const formData = new FormData();
+  formData.append("image", file);
+  return await api.post("/product/upload", formData, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
+// create product
+const CreateProduct = async (token, data) =>
+  await api.post("/product", data, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 
 // to search products
 const GetProducts = async (keyword, page = 1, limit = 20, sort = "newest", minPrice, maxPrice, category, brand) => {
@@ -186,6 +218,8 @@ export {
   GetProductById,
   GetProductsByCategory,
   GetProducts,
+  UploadProductImage,
+  CreateProduct,
   GetCartItems,
   DeleteCartItem,
   DeleteCartItems,
