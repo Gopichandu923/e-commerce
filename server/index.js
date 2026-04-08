@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import connectDB from "./config/database.js";
 import colors from "colors";
+import fileUpload from "express-fileupload";
 
 import { notFound, errorHandler } from "./middleware/errorHandlerMiddleware.js";
 
@@ -21,6 +22,7 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(fileUpload());
 
 app.use("/api/user", authRoutes);
 app.use("/api/product", productRoutes);
