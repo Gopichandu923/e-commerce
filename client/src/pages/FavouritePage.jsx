@@ -1,24 +1,58 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
   getFavourites,
   removeFromFavourites,
 } from "../redux/favourites/favouriteActions";
+import { getUserFromCookie } from "../utils/cookie.js";
 
 const FavoriteComponent = () => {
   const dispatch = useDispatch();
-
   const { favourite, loading, error } = useSelector(
     (state) => state.favourites
   );
+  const [isBrowser, setIsBrowser] = useState(false);
+  const hasFetched = useRef(false);
 
   useEffect(() => {
-    dispatch(getFavourites());
-  }, [dispatch]);
+    setIsBrowser(true);
+  }, []);
+
+  const currentUser = useMemo(() => {
+    return isBrowser ? getUserFromCookie() : null;
+  }, [isBrowser]);
+
+  useEffect(() => {
+    if (!isBrowser) return;
+    
+    if (currentUser?.token && !hasFetched.current) {
+      hasFetched.current = true;
+      dispatch(getFavourites());
+    }
+  }, [dispatch, isBrowser, currentUser]);
 
   const handleRemoveFavorite = (id) => {
-    dispatch(removeFromFavourites(id));
+    if (currentUser?.token) {
+      dispatch(removeFromFavourites(id));
+    }
   };
+
+  if (!currentUser) {
+    return (
+      <div className="max-w-5xl mx-auto p-4 sm:p-6 bg-white rounded-xl shadow-md mt-8">
+        <h2 className="text-2xl font-bold text-gray-800 pb-3 mb-6 border-b border-gray-200">
+          Your Favorite Products
+        </h2>
+        <div className="text-center py-10 text-gray-500">
+          <p className="text-lg">Sign in to view your favorites</p>
+          <Link to="/login" className="text-blue-500 hover:underline mt-2 inline-block">
+            Sign In
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-5xl mx-auto p-4 sm:p-6 bg-white rounded-xl shadow-md mt-8">
@@ -37,7 +71,9 @@ const FavoriteComponent = () => {
       ) : favourite.length === 0 ? (
         <div className="text-center py-10 text-gray-500">
           <p className="text-lg">No favorite products yet.</p>
-          <p className="text-sm mt-2">Your favorite items will appear here.</p>
+          <Link to="/shop" className="text-blue-500 hover:underline mt-2 inline-block">
+            Start Shopping
+          </Link>
         </div>
       ) : (
         <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
