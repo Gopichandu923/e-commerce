@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://e-commerce-86h8.onrender.com/api",
+  baseURL: "https://e-commerce-q8om.onrender.com/api",
 });
 
 // Helper for multipart form data
