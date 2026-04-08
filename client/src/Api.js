@@ -27,8 +27,18 @@ const GetProductsByCategory = async (category) =>
   await api.get(`/product/category/${category}`);
 
 // to search products
-const GetProducts = async (keyword) =>
-  await api.get(`/product/search?keyword=${encodeURIComponent(keyword)}`);
+const GetProducts = async (keyword, page = 1, limit = 20, sort = "newest", minPrice, maxPrice, category, brand) => {
+  const params = new URLSearchParams();
+  params.append("keyword", keyword);
+  params.append("page", page);
+  params.append("limit", limit);
+  params.append("sort", sort);
+  if (minPrice) params.append("minPrice", minPrice);
+  if (maxPrice) params.append("maxPrice", maxPrice);
+  if (category) params.append("category", category);
+  if (brand) params.append("brand", brand);
+  return await api.get(`/product/search?${params.toString()}`);
+};
 
 //cart
 
@@ -110,6 +120,50 @@ const RemoveItemFromFavourites = async (token, id) =>
     },
   });
 
+//orders
+const GetMyOrders = async (token) =>
+  await api.get("/order/myorders", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+const GetOrderById = async (token, id) =>
+  await api.get(`/order/${id}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+//address
+const GetAddresses = async (token) =>
+  await api.get("/address", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+const AddAddress = async (token, data) =>
+  await api.post("/address", data, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+const UpdateAddress = async (token, id, data) =>
+  await api.put(`/address/${id}`, data, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+const DeleteAddress = async (token, id) =>
+  await api.delete(`/address/${id}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
 export {
   Login,
   Register,
@@ -126,4 +180,10 @@ export {
   GetFavouriteItems,
   RemoveItemFromFavourites,
   AddItemToFavourites,
+  GetMyOrders,
+  GetOrderById,
+  GetAddresses,
+  AddAddress,
+  UpdateAddress,
+  DeleteAddress,
 };
