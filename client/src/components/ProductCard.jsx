@@ -8,7 +8,7 @@ import {
 import { getUserFromCookie } from "../utils/cookie.js";
 import toast from "react-hot-toast";
 
-const ProductCard = ({ product, initialIsFavorite = false }) => {
+const ProductCard = ({ product, initialIsFavorite = false, darkMode = false }) => {
   // Added initialIsFavorite prop
   const [isFavorite, setIsFavorite] = useState(initialIsFavorite);
   const [addingToCart, setAddingToCart] = useState(false);
@@ -97,7 +97,7 @@ const ProductCard = ({ product, initialIsFavorite = false }) => {
   };
 
   return (
-    <div className="group bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl transform hover:-translate-y-1 flex flex-col h-full" key={product._id}>
+    <div className={`group rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl transform hover:-translate-y-1 flex flex-col h-full ${darkMode ? "bg-gray-800" : "bg-white"}`} key={product._id}>
       <div className="relative">
         <Link to={`/product/${product._id}`} className="block">
           <div className="aspect-square w-full overflow-hidden">
