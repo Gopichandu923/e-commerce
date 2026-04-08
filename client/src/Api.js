@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://e-commerce-q8om.onrender.com/api",
+  baseURL: "https://e-commerce-9a9t.onrender.com/api",
 });
 
 // Helper for multipart form data
@@ -30,6 +30,14 @@ const GetAllProducts = async () => await api.get("/product");
 
 // to get product details
 const GetProductById = async (id) => await api.get(`/product/${id}`);
+
+// submit product review
+const SubmitProductReview = async (token, id, rating, comment) =>
+  await api.post(`/product/${id}/reviews`, { rating, comment }, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 
 //to get all categories
 const GetAllCategories = async () => await api.get("/product/categories");
@@ -231,6 +239,7 @@ export {
   GetAllProducts,
   GetAllCategories,
   GetProductById,
+  SubmitProductReview,
   GetProductsByCategory,
   GetProducts,
   UploadProductImage,

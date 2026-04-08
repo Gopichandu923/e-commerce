@@ -1,7 +1,6 @@
 // src/pages/ProductDetailPage.jsx
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import axios from "axios";
 import {
   FiHeart,
   FiShoppingCart,
@@ -13,8 +12,13 @@ import Rating from "../components/Rating";
 import ProductCard from "../components/ProductCard";
 import { getUserFromCookie } from "../utils/cookie.js";
 import toast from "react-hot-toast";
-
-const API_BASE_URL = "http://localhost:4040/api";
+import { 
+  GetProductById, 
+  GetProductsByCategory, 
+  AddItemToCart, 
+  AddItemToFavourites,
+  SubmitProductReview
+} from "../Api.js";
 
 const ProductDetailPage = () => {
   const { productId } = useParams();
@@ -34,23 +38,11 @@ const ProductDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const axiosInstance = useMemo(() => {
-    const user = getUserFromCookie();
-    const token = user?.token;
-    return axios.create({
-      baseURL: API_BASE_URL,
-      headers: {
-        "Content-Type": "application/json",
-        ...(token && { Authorization: `Bearer ${token}` }),
-      },
-    });
-  }, []);
-
   const fetchProductDetails = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const { data } = await axiosInstance.get(`/product/${productId}`);
+      const { data } = await GetProductById(productId);
       setProduct(data);
       if (data.category) {
         fetchRelatedProducts(data.category, data._id);
@@ -61,13 +53,11 @@ const ProductDetailPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [productId, axiosInstance]);
+  }, [productId]);
 
   const fetchRelatedProducts = async (categoryName, currentProductId) => {
     try {
-      const { data } = await axiosInstance.get(
-        `/product/category/${encodeURIComponent(categoryName.toLowerCase())}`
-      );
+      const { data } = await GetProductsByCategory(categoryName.toLowerCase());
       const related = data
         .filter((p) => p._id !== currentProductId)
         .slice(0, 4);
@@ -104,10 +94,7 @@ const ProductDetailPage = () => {
       return;
     }
     try {
-      await axiosInstance.post("/cart/add", {
-        productId: product._id,
-        quantity,
-      });
+      await AddItemToCart(USER_INFO.token, product._id);
       toast.success(`${quantity} x ${product.name} added to cart!`);
     } catch (err) {
       toast.error(
@@ -127,7 +114,7 @@ const ProductDetailPage = () => {
 
     setFavoriteProcessing(true);
     try {
-      await axiosInstance.post(`/favourite/${product._id}`);
+      await AddItemToFavourites(USER_INFO.token, product._id);
       toast.success(`${product.name} added to favorites.`);
     } catch (err) {
       if (
@@ -170,10 +157,7 @@ const ProductDetailPage = () => {
     setReviewError("");
     setReviewSuccess("");
     try {
-      await axiosInstance.post(`/product/${productId}/reviews`, {
-        rating: reviewRating,
-        comment: reviewComment,
-      });
+      await SubmitProductReview(USER_INFO.token, productId, reviewRating, reviewComment);
       setReviewSuccess(
         "Review submitted successfully! It may take some time to appear."
       );
