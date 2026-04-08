@@ -44,15 +44,16 @@ const App = () => {
             <Route path="/" element={<Home />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/product/:productId" element={<ProductDetails />} />
-            <Route path="/profile" element={<Profile />} />
+            <Route path="/profile" element={<Profile darkMode={darkMode} />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/orders" element={<Order />} />
+            <Route path="/orders/:orderId" element={<Order darkMode={darkMode} />} />
             <Route path="/favourite" element={<Favourite />} />
             <Route path="/shop" element={<ShopPage />} />
             <Route path="/shop/:categoryName" element={<ShopPage />} />
             <Route path="/search" element={<SearchPage darkMode={darkMode} />} />
-            <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="/checkout" element={<CheckoutPage darkMode={darkMode} />} />
           </Routes>
         </main>
         <Footer />
