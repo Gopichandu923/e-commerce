@@ -68,13 +68,67 @@ const userSchema = mongoose.Schema(
     },
     address: [
       {
-        street: { type: String, required: true },
-        city: { type: String, required: true },
-        state: { type: String, required: true },
-        zip: { type: String, required: true },
-        mainAddress: {
+        _id: {
+          type: mongoose.Schema.Types.ObjectId,
+          auto: true,
+        },
+        fullName: {
+          type: String,
+          required: [true, "Full name is required"],
+          trim: true,
+          minlength: [2, "Full name must be at least 2 characters"],
+          maxlength: [100, "Full name cannot exceed 100 characters"],
+        },
+        street: {
+          type: String,
+          required: [true, "Street address is required"],
+          trim: true,
+          minlength: [5, "Street address must be at least 5 characters"],
+          maxlength: [200, "Street address cannot exceed 200 characters"],
+        },
+        city: {
+          type: String,
+          required: [true, "City is required"],
+          trim: true,
+          minlength: [2, "City must be at least 2 characters"],
+          maxlength: [100, "City cannot exceed 100 characters"],
+        },
+        state: {
+          type: String,
+          required: [true, "State is required"],
+          trim: true,
+          minlength: [2, "State must be at least 2 characters"],
+          maxlength: [100, "State cannot exceed 100 characters"],
+        },
+        zipCode: {
+          type: String,
+          required: [true, "PIN code is required"],
+          trim: true,
+          match: [/^\d{6}$/, "Please enter a valid 6-digit PIN code (e.g., 500001)"],
+        },
+        country: {
+          type: String,
+          default: "United States",
+          trim: true,
+        },
+        phone: {
+          type: String,
+          trim: true,
+          match: [/^[\d\s\-\+\(\)]+$/, "Please enter a valid phone number"],
+          maxlength: [20, "Phone number cannot exceed 20 characters"],
+        },
+        isMain: {
           type: Boolean,
           default: false,
+        },
+        label: {
+          type: String,
+          enum: ["Home", "Work", "Other", null],
+          default: null,
+        },
+        deliveryInstructions: {
+          type: String,
+          maxlength: [500, "Delivery instructions cannot exceed 500 characters"],
         },
       },
     ],
