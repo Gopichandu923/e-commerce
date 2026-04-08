@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:4040/api",
+  baseURL: "https://e-commerce-kc4s.onrender.com/api",
 });
 
 // Helper for multipart form data
