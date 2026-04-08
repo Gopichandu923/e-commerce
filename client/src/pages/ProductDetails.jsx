@@ -135,7 +135,13 @@ const ProductDetailPage = () => {
         err.response.status === 400 &&
         err.response.data.message === "Product already in favorites"
       ) {
-        toast.error("This product is already in your favorites!");
+        toast("This product is already in your favorites!", {
+          icon: '❤️',
+          style: {
+            background: '#F59E0B',
+            color: '#fff',
+          },
+        });
       } else {
         toast.error(
           `Failed to add to favorites: ${
