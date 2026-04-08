@@ -14,17 +14,28 @@ export const getFavourites = () => {
     try {
       const user = getUserFromCookie();
       const token = user?.token;
+      
+      if (!token) {
+        dispatch({
+          type: "GET_FAVOURITES_FAILURE",
+          payload: "No authentication token found",
+        });
+        return;
+      }
+      
       const response = await GetFavouriteItems(token);
       dispatch({
         type: "GET_FAVOURITES_SUCCESS",
-        payload: response.data, // assuming API returns favourites list
+        payload: response.data || [],
       });
     } catch (err) {
+      console.error("Favorites fetch error:", err);
+      const errorMessage = err.response?.data?.message || err.message || "Failed to load favourites";
       dispatch({
         type: "GET_FAVOURITES_FAILURE",
-        payload: err.message,
+        payload: errorMessage,
       });
-      toast.error(err.message || "Failed to load favourites");
+      toast.error(errorMessage);
     }
   };
 };
