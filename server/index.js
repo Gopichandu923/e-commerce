@@ -21,7 +21,8 @@ connectDB();
 const app = express();
 
 app.use(cors({
-  origin: "https://shopez-ecommerce.netlify.app"
+  origin: "https://shopez-ecommerce.netlify.app",
+credentials: true
 }));
 app.use(express.json());
 app.use(fileUpload());
