@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { GetCartItems, GetAddresses, AddOrder } from "../Api";
+import { GetCartItems, GetAddresses, AddOrder, CreatePaymentOrder, VerifyPayment, DeleteCartItems } from "../Api";
 import { getUserFromCookie } from "../utils/cookie.js";
 import toast from "react-hot-toast";
 
@@ -26,6 +26,7 @@ const CheckoutPage = ({ darkMode = false }) => {
   
   const [paymentMethod, setPaymentMethod] = useState("cod");
   const [orderProcessing, setOrderProcessing] = useState(false);
+  const [razorpayLoaded, setRazorpayLoaded] = useState(false);
 
   const currentUser = getUserFromCookie();
   const token = currentUser?.token;
@@ -36,7 +37,16 @@ const CheckoutPage = ({ darkMode = false }) => {
       return;
     }
     fetchData();
+    loadRazorpay();
   }, [token, navigate]);
+
+  const loadRazorpay = () => {
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    script.onload = () => setRazorpayLoaded(true);
+    document.body.appendChild(script);
+  };
 
   const fetchData = async () => {
     try {
@@ -106,32 +116,98 @@ const CheckoutPage = ({ darkMode = false }) => {
     setOrderProcessing(true);
     try {
       const addr = getSelectedAddress();
-      const orderData = {
-        orderItems: cartItems.map(item => ({
-          productId: item.productId._id,
-          name: item.productId.name,
-          qty: item.quantity,
-          price: item.priceAtAddition,
-          image: item.productId.image
-        })),
-        shippingAddress: {
-          name: addr.fullName || addr.fullName,
-          street: addr.street || addr.street,
-          city: addr.city || addr.city,
-          state: addr.state || addr.state,
-          zipCode: addr.zipCode || addr.zipCode,
-          phone: addr.phone || addr.phone
-        },
-        paymentMethod,
-        itemsPrice: subtotal,
-        taxPrice: 0,
-        shippingPrice: 0,
-        totalPrice: subtotal
-      };
+      
+      if (paymentMethod === "card" && razorpayLoaded) {
+        try {
+          const orderRes = await CreatePaymentOrder(token, subtotal);
+          const razorpayOrder = orderRes.data;
 
-      await AddOrder(token, orderData);
-      toast.success("Order placed successfully!");
-      navigate("/orders");
+          const options = {
+            key: razorpayOrder.keyId, 
+            amount: razorpayOrder.amount,
+            currency: razorpayOrder.currency,
+            name: "ShopEZ",
+            description: "Order Payment",
+            order_id: razorpayOrder.id,
+            handler: async (response) => {
+              try {
+                const orderData = {
+                  orderItems: cartItems.map(item => ({
+                    productId: item.productId._id,
+                    name: item.productId.name,
+                    qty: item.quantity,
+                    price: item.priceAtAddition,
+                    image: item.productId.image
+                  })),
+                  shippingAddress: {
+                    name: addr.fullName,
+                    street: addr.street,
+                    city: addr.city,
+                    state: addr.state,
+                    zipCode: addr.zipCode,
+                    phone: addr.phone
+                  },
+                  paymentMethod: "card",
+                  isPaid: true,
+                  paidAt: new Date(),
+                  itemsPrice: subtotal,
+                  taxPrice: 0,
+                  shippingPrice: 0,
+                  totalPrice: subtotal
+                };
+
+                await AddOrder(token, orderData);
+                await DeleteCartItems(token);
+                await VerifyPayment(token, {
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_signature: response.razorpay_signature,
+                });
+                toast.success("Order placed successfully!");
+                navigate("/orders");
+              } catch (err) {
+                toast.error(err.response?.data?.message || "Payment verification failed");
+              }
+            },
+            theme: {
+              color: darkMode ? "#1f2937" : "#3b82f6"
+            }
+          };
+
+          const rzp1 = new window.Razorpay(options);
+          rzp1.open();
+        } catch (err) {
+          toast.error(err.response?.data?.message || "Failed to initiate payment");
+        }
+      } else {
+        const orderData = {
+          orderItems: cartItems.map(item => ({
+            productId: item.productId._id,
+            name: item.productId.name,
+            qty: item.quantity,
+            price: item.priceAtAddition,
+            image: item.productId.image
+          })),
+          shippingAddress: {
+            name: addr.fullName,
+            street: addr.street,
+            city: addr.city,
+            state: addr.state,
+            zipCode: addr.zipCode,
+            phone: addr.phone
+          },
+          paymentMethod: "cod",
+          itemsPrice: subtotal,
+          taxPrice: 0,
+          shippingPrice: 0,
+          totalPrice: subtotal
+        };
+
+        await AddOrder(token, orderData);
+        await DeleteCartItems(token);
+        toast.success("Order placed successfully!");
+        navigate("/orders");
+      }
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to place order");
     } finally {

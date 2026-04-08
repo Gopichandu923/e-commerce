@@ -210,6 +210,21 @@ const SetMainAddress = async (token, id) =>
     },
   });
 
+// payment
+const CreatePaymentOrder = async (token, amount) =>
+  await api.post("/payment/order", { amount }, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+const VerifyPayment = async (token, data) =>
+  await api.post("/payment/verify", data, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
 export {
   Login,
   Register,
@@ -236,4 +251,6 @@ export {
   UpdateAddress,
   DeleteAddress,
   SetMainAddress,
+  CreatePaymentOrder,
+  VerifyPayment,
 };
