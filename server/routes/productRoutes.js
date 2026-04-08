@@ -9,20 +9,22 @@ import {
   getAllCategories,
   getProductsByCategory,
   seacrhProducts,
+  uploadImage,
 } from "../controllers/productController.js";
-import { protect, admin } from "../middleware/authMiddleware.js";
+import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.route("/").get(getAllProducts).post(protect, admin, createProduct);
+router.route("/").get(getAllProducts).post(protect, createProduct);
+router.route("/upload").post(protect, uploadImage);
 router.route("/category/:category").get(getProductsByCategory);
 router.route("/categories").get(getAllCategories);
 router.route("/search").get(seacrhProducts);
 router
   .route("/:id")
   .get(getProductById)
-  .put(protect, admin, updateProduct)
-  .delete(protect, admin, deleteProduct);
+  .put(protect, updateProduct)
+  .delete(protect, deleteProduct);
 router.route("/:id/reviews").post(protect, createProductReview);
 
 export default router;
