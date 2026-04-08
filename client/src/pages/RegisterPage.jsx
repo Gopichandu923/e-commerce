@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { register } from "../redux/auth/authActions.js";
 
@@ -208,43 +208,15 @@ const Register = () => {
         <div className="text-center mt-6 text-gray-600 text-base">
           <p>
             Already have an account?{" "}
-            <a
-              href="/login"
+            <Link
+              to="/login"
               className="text-blue-500 font-medium hover:underline"
             >
               Sign In
-            </a>
+            </Link>
           </p>
         </div>
       </div>
-
-      <style jsx>{`
-        .dot-bounce {
-          width: 10px;
-          height: 10px;
-          background-color: white;
-          border-radius: 50%;
-          display: inline-block;
-          animation: bounce 1.4s infinite ease-in-out both;
-          margin: 0 3px;
-        }
-        .delay-150 {
-          animation-delay: -0.16s;
-        }
-        .delay-300 {
-          animation-delay: -0.32s;
-        }
-        @keyframes bounce {
-          0%,
-          80%,
-          100% {
-            transform: scale(0);
-          }
-          40% {
-            transform: scale(1);
-          }
-        }
-      `}</style>
     </div>
   );
 };
