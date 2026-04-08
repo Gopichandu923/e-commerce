@@ -21,7 +21,7 @@ connectDB();
 const app = express();
 
 app.use(cors({
-  origin: ["https://shopez-ecommerce.netlify.app", "http://localhost:5173", "https://www.shopez-ecommerce.netlify.app"],
+  origin: ["https://shopez-ecommerce.netlify.app", "http://localhost:5173", "https://www.shopez-ecommerce.netlify.app", "https://e-commerce-azure-gamma-29.vercel.app", "https://www.e-commerce-azure-gamma-29.vercel.app/"],
   credentials: true
 }));
 app.use(express.json());
