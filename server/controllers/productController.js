@@ -12,34 +12,30 @@ const uploadImage = asyncHandler(async (req, res) => {
   console.log("Upload request received");
   console.log("Files:", req.files);
   console.log("File object:", req.files?.image);
-  
+
   if (!req.files || !req.files.image) {
     res.status(400);
     throw new Error("Please upload an image");
   }
 
   const file = req.files.image;
-  console.log("File name:", file.name);
-  console.log("File type:", file.mimetype);
-  console.log("File size:", file.size);
-  console.log("Has data:", !!file.data);
-  
+
   // Check if cloudinary is configured
   if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
     console.log("Cloudinary not configured");
     res.status(400);
     throw new Error("Cloudinary not configured");
   }
-  
+
   try {
     console.log("Uploading to Cloudinary...");
-    
+
     // Use data directly from express-fileupload
     const b64 = Buffer.from(file.data).toString("base64");
     const dataURI = `data:${file.mimetype};base64,${b64}`;
-    
+
     console.log("Data URI length:", dataURI.length);
-    
+
     const result = await cloudinary.uploader.upload(dataURI, {
       folder: "ecommerce",
     });
