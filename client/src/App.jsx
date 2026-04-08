@@ -14,6 +14,7 @@ import Footer from "./components/Footer.jsx";
 import ShopPage from "./pages/shoppingPage.jsx";
 import SearchPage from "./pages/SearchPage.jsx";
 import CheckoutPage from "./pages/CheckoutPage.jsx";
+import AddProductPage from "./pages/AddProductPage.jsx";
 
 const App = () => {
   const [darkMode, setDarkMode] = useState(() => {
@@ -54,6 +55,7 @@ const App = () => {
             <Route path="/shop/:categoryName" element={<ShopPage />} />
             <Route path="/search" element={<SearchPage darkMode={darkMode} />} />
             <Route path="/checkout" element={<CheckoutPage darkMode={darkMode} />} />
+            <Route path="/add-product" element={<AddProductPage darkMode={darkMode} />} />
           </Routes>
         </main>
         <Footer />
