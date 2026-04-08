@@ -135,6 +135,13 @@ const GetOrderById = async (token, id) =>
     },
   });
 
+const AddOrder = async (token, data) =>
+  await api.post("/order", data, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
 //address
 const GetAddresses = async (token) =>
   await api.get("/address", {
@@ -164,6 +171,13 @@ const DeleteAddress = async (token, id) =>
     },
   });
 
+const SetMainAddress = async (token, id) =>
+  await api.patch(`/address/${id}/set-main`, {}, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
 export {
   Login,
   Register,
@@ -182,8 +196,10 @@ export {
   AddItemToFavourites,
   GetMyOrders,
   GetOrderById,
+  AddOrder,
   GetAddresses,
   AddAddress,
   UpdateAddress,
   DeleteAddress,
+  SetMainAddress,
 };
