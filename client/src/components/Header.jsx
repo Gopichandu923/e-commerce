@@ -1,6 +1,6 @@
-// src/components/Navbar.js
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import {
   FiSearch,
   FiShoppingCart,
@@ -10,16 +10,21 @@ import {
   FiX,
   FiMoon,
   FiSun,
+  FiLogOut,
 } from "react-icons/fi";
+import { logout } from "../redux/auth/authActions";
+import { GetProducts } from "../Api";
 
-const Navbar = ({ cartCount, darkMode, setDarkMode }) => {
+const Header = ({ cartCount, darkMode, setDarkMode }) => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { user } = useSelector((state) => state.auth);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
-  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
-  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [suggestions, setSuggestions] = useState([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const searchInputRef = useRef(null);
-  const navigate = useNavigate();
-
+  
   const categories = [
     { name: "Men's Clothing", to: "/shop/mens-clothing" },
     { name: "Women's Clothing", to: "/shop/womens-clothing" },
@@ -29,373 +34,312 @@ const Navbar = ({ cartCount, darkMode, setDarkMode }) => {
   ];
 
   useEffect(() => {
-    const handleResize = () => {
-      const currentWidth = window.innerWidth;
-      setWindowWidth(currentWidth);
-      if (currentWidth >= 768) {
-        // md breakpoint
-        setIsSearchExpanded(true); // Search always expanded on desktop
-        setMobileMenuOpen(false);
+    const delayDebounce = setTimeout(async () => {
+      if (searchValue.trim().length >= 2) {
+        setLoadingSuggestions(true);
+        try {
+          const response = await GetProducts(searchValue.trim(), 1, 5);
+          if (response.data?.products) {
+            setSuggestions(response.data.products);
+          }
+        } catch (error) {
+          console.error("Search suggestions error:", error);
+        } finally {
+          setLoadingSuggestions(false);
+        }
       } else {
-        // For mobile, if search was expanded, keep it expanded on minor resizes
-        // If it was collapsed, keep it collapsed.
-        // If you want it to always collapse on resize to mobile:
-        // setIsSearchExpanded(false);
+        setSuggestions([]);
       }
-    };
+    }, 300);
 
-    window.addEventListener("resize", handleResize);
-    handleResize();
+    return () => clearTimeout(delayDebounce);
+  }, [searchValue]);
 
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  useEffect(() => {
-    if (isSearchExpanded && windowWidth < 768 && searchInputRef.current) {
-      searchInputRef.current.focus();
-    }
-  }, [isSearchExpanded, windowWidth]);
-
-  const toggleSearch = () => {
-    // This function is primarily for mobile to expand/collapse the search icon into a bar
-    if (windowWidth < 768) {
-      setIsSearchExpanded(!isSearchExpanded);
-    }
-  };
-
-  const handleSearchSubmit = (e) => {
+  const handleSearchSubmit = useCallback((e) => {
     e.preventDefault();
     if (searchValue.trim()) {
       navigate(`/search?q=${encodeURIComponent(searchValue.trim())}`);
       setSearchValue("");
-      if (windowWidth < 768) {
-        setIsSearchExpanded(false); // Collapse after search on mobile
-      }
+      setSuggestions([]);
     }
-  };
+  }, [searchValue, navigate]);
 
-  const SearchBar = () => (
-    <form
-      onSubmit={handleSearchSubmit}
-      className={`relative transition-all duration-300 ease-in-out 
-                 ${darkMode ? "bg-gray-800" : "bg-gray-100"}
-                 ${
-                   isSearchExpanded
-                     ? "w-full md:max-w-md lg:max-w-lg rounded-xl" // Full width on mobile when expanded, max-width on desktop
-                     : "w-10 h-10 rounded-full cursor-pointer flex items-center justify-center md:w-full md:max-w-md lg:max-w-lg md:rounded-xl" // Collapsed on mobile, expanded with max-width on desktop
-                 }
-                `}
-    >
-      {/* Desktop search is always expanded (due to useEffect), mobile search toggles */}
-      {isSearchExpanded || windowWidth >= 768 ? (
-        <>
+  const handleSuggestionClick = useCallback((productId, productName) => {
+    if (productId) {
+      navigate(`/product/${productId}`);
+    } else {
+      navigate(`/search?q=${encodeURIComponent(productName)}`);
+    }
+    setSearchValue("");
+    setSuggestions([]);
+  }, [navigate]);
+
+  const handleClearSearch = useCallback(() => {
+    setSearchValue("");
+    setSuggestions([]);
+  }, []);
+
+  const SearchBar = useCallback(() => {
+    const showDropdown = searchValue.trim().length >= 2 && suggestions.length > 0;
+    
+    return (
+    <div className="relative flex-1 max-w-xl mx-4">
+      <form onSubmit={handleSearchSubmit} className="relative">
+        <div className={`flex items-center w-full rounded-full border transition-all duration-300 ${
+          darkMode 
+            ? "bg-gray-800 border-gray-700 focus-within:border-blue-500" 
+            : "bg-gray-100 border-gray-200 focus-within:border-blue-500"
+        } focus-within:ring-2 focus-within:ring-blue-500/20`}>
+          <div className="pl-4">
+            <FiSearch className={`h-5 w-5 ${darkMode ? "text-gray-400" : "text-gray-500"}`} />
+          </div>
           <input
             ref={searchInputRef}
             id="search-input"
-            type="search"
+            type="text"
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
-            placeholder="Search products..."
-            className={`py-2 pl-10 pr-4 md:pr-10 block w-full rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              darkMode
-                ? "bg-gray-800 text-white placeholder-gray-400"
-                : "bg-gray-100 text-gray-900 placeholder-gray-500"
+            autoComplete="off"
+            placeholder="Search for products, brands..."
+            className={`w-full py-2.5 px-3 bg-transparent border-none outline-none ${
+              darkMode 
+                ? "text-white placeholder-gray-500" 
+                : "text-gray-900 placeholder-gray-500"
             }`}
           />
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <FiSearch
-              className={`h-5 w-5 ${
-                darkMode ? "text-gray-400" : "text-gray-500"
-              }`}
-            />
-          </div>
-          {/* Close button for mobile search only when search is expanded on mobile */}
-          {isSearchExpanded && windowWidth < 768 && (
+          {searchValue && (
             <button
               type="button"
-              onClick={toggleSearch} // This will set isSearchExpanded to false on mobile
-              className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
-              aria-label="Close search"
+              onClick={handleClearSearch}
+              className="pr-4 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full p-1 transition-colors"
             >
-              <FiX
-                className={`h-5 w-5 ${
-                  darkMode ? "text-gray-400" : "text-gray-500"
-                }`}
-              />
+              <FiX className={`h-4 w-4 ${darkMode ? "text-gray-400" : "text-gray-500"}`} />
             </button>
           )}
-        </>
-      ) : (
-        // This part is now only for the collapsed search icon on mobile
-        <button
-          type="button"
-          className="p-2 flex items-center justify-center w-full h-full"
-          onClick={toggleSearch} // This will set isSearchExpanded to true on mobile
-          aria-label="Open search"
-        >
-          <FiSearch
-            className={`h-5 w-5 ${
-              darkMode ? "text-gray-400" : "text-gray-500"
-            }`}
-          />
-        </button>
-      )}
-    </form>
-  );
-
-  return (
-    <nav
-      className={`sticky top-0 z-50 ${
-        darkMode ? "bg-gray-900 text-gray-200" : "bg-white text-gray-800"
-      } shadow-lg backdrop-filter backdrop-blur-sm bg-opacity-90 transition-colors duration-300`}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16 items-center">
-          {/* Logo */}
-          <div
-            className={`flex items-center ${
-              isSearchExpanded && windowWidth < 768
-                ? "hidden"
-                : "block md:flex-none"
-            }`}
-          >
-            {/* md:flex-none helps prevent logo from shrinking too much if search bar needs space initially */}
-            <Link to="/" className="flex-shrink-0 flex items-center">
-              <div
-                className={`font-bold text-2xl tracking-tighter ${
-                  darkMode ? "text-blue-400" : "text-blue-600"
+        </div>
+      </form>
+      
+      {showDropdown && (
+        <div className={`absolute top-full left-0 right-0 mt-2 rounded-xl shadow-xl border z-50 overflow-hidden ${
+          darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
+        }`}>
+          {loadingSuggestions ? (
+            <div className={`p-4 flex items-center justify-center gap-2 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+              <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+              Searching...
+            </div>
+          ) : (
+            <ul>
+              {suggestions.map((product) => (
+                <li
+                  key={product._id}
+                  onClick={() => handleSuggestionClick(product._id, product.name)}
+                  className={`flex items-center p-3 cursor-pointer transition-colors ${
+                    darkMode ? "hover:bg-gray-700" : "hover:bg-gray-50"
+                  }`}
+                >
+                  <div className="relative w-12 h-12 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
+                    <img
+                      src={product.image || "https://via.placeholder.com/48"}
+                      alt={product.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0 ml-3">
+                    <p className={`text-sm font-medium truncate ${
+                      darkMode ? "text-white" : "text-gray-900"
+                    }`}>
+                      {product.name}
+                    </p>
+                    <p className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+                      {product.category}
+                    </p>
+                  </div>
+                  <span className={`text-sm font-semibold ml-2 ${
+                    darkMode ? "text-blue-400" : "text-blue-600"
+                  }`}>
+                    ${product.price?.toFixed(2)}
+                  </span>
+                </li>
+              ))}
+              <li
+                onClick={() => handleSuggestionClick(null, searchValue)}
+                className={`p-3 cursor-pointer text-center border-t transition-colors ${
+                  darkMode
+                    ? "hover:bg-gray-700 border-gray-700"
+                    : "hover:bg-gray-50 border-gray-100"
                 }`}
               >
-                <span className="bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
-                  SHOP
+                <span className={`text-sm font-medium ${
+                  darkMode ? "text-blue-400" : "text-blue-600"
+                }`}>
+                  See all results for "{searchValue}" →
                 </span>
-                <span className="text-orange-500">EZ</span>
-              </div>
-            </Link>
-          </div>
+              </li>
+            </ul>
+          )}
+        </div>
+      )}
+    </div>
+    );
+  }, [darkMode, searchValue, suggestions, loadingSuggestions, handleSearchSubmit, handleClearSearch, handleSuggestionClick]);
 
-          {/* Search Bar Container - This will center the SearchBar component */}
-          <div className="flex-1 flex justify-center items-center min-w-0 px-2 sm:px-4">
+  return (
+    <nav className={`sticky top-0 z-50 ${darkMode ? "bg-gray-900/95" : "bg-white/95"} backdrop-blur-md shadow-sm`}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 gap-4">
+          {/* Logo */}
+          <Link to="/" className="flex-shrink-0 flex items-center gap-2">
+            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+              darkMode ? "bg-blue-600" : "bg-gradient-to-br from-blue-500 to-purple-600"
+            }`}>
+              <span className="text-white font-bold text-xl">S</span>
+            </div>
+            <div className={`hidden sm:block font-bold text-xl tracking-tight ${
+              darkMode ? "text-white" : "text-gray-900"
+            }`}>
+              <span className="text-blue-600">Shop</span><span className="text-orange-500">EZ</span>
+            </div>
+          </Link>
+
+          {/* Search Bar */}
+          <div className="flex-1 max-w-2xl">
             <SearchBar />
           </div>
 
-          {/* Desktop Navigation Icons */}
-          <div className="hidden md:flex items-center space-x-4 md:flex-none">
-            {" "}
-            {/* md:flex-none to prevent shrinking */}
+          {/* Navigation Icons */}
+          <div className="flex items-center gap-1">
             <Link
               to="/favourite"
-              className={`p-2 rounded-full relative transition-all duration-300 ${
-                darkMode
-                  ? "text-gray-300 hover:bg-gray-700"
-                  : "text-gray-700 hover:bg-gray-200"
-              } hover:scale-110`}
+              className={`p-2.5 rounded-full transition-all duration-200 ${
+                darkMode ? "text-gray-400 hover:text-red-400 hover:bg-gray-800" : "text-gray-600 hover:text-red-500 hover:bg-gray-100"
+              }`}
               aria-label="Wishlist"
             >
-              <FiHeart className="h-6 w-6" />
-              <span className="sr-only">Wishlist</span>
+              <FiHeart className="h-5 w-5" />
             </Link>
+            
             <Link
               to="/cart"
-              className="relative group block rounded-full"
+              className={`relative p-2.5 rounded-full transition-all duration-200 ${
+                darkMode ? "text-gray-400 hover:bg-gray-800" : "text-gray-600 hover:bg-gray-100"
+              }`}
               aria-label="Cart"
             >
-              <div
-                className={`p-2 rounded-full transition-all duration-300 group-hover:scale-110 ${
-                  darkMode
-                    ? "text-gray-300 group-hover:bg-gray-700"
-                    : "text-gray-700 group-hover:bg-gray-200"
-                }`}
-              >
-                <FiShoppingCart className="h-6 w-6" />
-              </div>
-              <span className="sr-only">View Shopping Cart</span>
+              <FiShoppingCart className="h-5 w-5" />
               {cartCount > 0 && (
-                <span
-                  className={`absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center shadow-md transition-transform duration-200 group-hover:scale-110`}
-                >
-                  {cartCount}
+                <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  {cartCount > 9 ? '9+' : cartCount}
                 </span>
               )}
             </Link>
-            <Link
-              to="/account"
-              className={`p-1 rounded-full transition-all duration-300 ${
-                darkMode
-                  ? "text-gray-300 hover:bg-gray-700"
-                  : "text-gray-700 hover:bg-gray-200"
-              } hover:scale-105`}
-              aria-label="Account"
-            >
-              <div className="flex items-center space-x-2 px-2 py-1">
-                <FiUser className="h-6 w-6" />
-                <span className="font-medium text-sm">Account</span>
-              </div>
-            </Link>
-          </div>
 
-          {/* Mobile Icons Area */}
-          <div
-            className={`flex items-center md:hidden ${
-              isSearchExpanded && windowWidth < 768 ? "hidden" : "flex"
-            }`}
-          >
-            <div className="flex items-center space-x-2">
-              <Link
-                to="/cart"
-                className="p-2 rounded-full relative"
-                aria-label="Cart"
-              >
-                <FiShoppingCart className="h-6 w-6" />
-                <span className="sr-only">Cart</span>
-                {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-4 w-4 flex items-center justify-center">
-                    {cartCount}
+            {user ? (
+              <div className="flex items-center gap-2 ml-2">
+                <Link
+                  to="/profile"
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-all duration-200 ${
+                    darkMode ? "hover:bg-gray-800" : "hover:bg-gray-100"
+                  }`}
+                >
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                    darkMode ? "bg-gray-700" : "bg-blue-100"
+                  }`}>
+                    <FiUser className={`h-4 w-4 ${darkMode ? "text-gray-300" : "text-blue-600"}`} />
+                  </div>
+                  <span className={`hidden lg:block text-sm font-medium ${
+                    darkMode ? "text-gray-300" : "text-gray-700"
+                  }`}>
+                    {user?.name?.split(' ')[0]}
                   </span>
-                )}
-              </Link>
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className={`p-2 rounded-md transition-colors duration-300 ${
-                  darkMode ? "hover:bg-gray-700" : "hover:bg-gray-200"
-                }`}
-                aria-expanded={mobileMenuOpen}
-                aria-controls="mobile-menu"
-              >
-                <span className="sr-only">Open main menu</span>
-                {mobileMenuOpen ? (
-                  <FiX className="h-6 w-6" />
-                ) : (
-                  <FiMenu className="h-6 w-6" />
-                )}
-              </button>
-            </div>
+                </Link>
+                <button
+                  onClick={() => dispatch(logout())}
+                  className={`p-2 rounded-full transition-all duration-200 ${
+                    darkMode ? "text-gray-400 hover:text-red-400 hover:bg-gray-800" : "text-gray-600 hover:text-red-500 hover:bg-gray-100"
+                  }`}
+                  aria-label="Logout"
+                >
+                  <FiLogOut className="h-5 w-5" />
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 ml-2">
+                <Link
+                  to="/login"
+                  className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 ${
+                    darkMode 
+                      ? "text-gray-300 hover:bg-gray-800" 
+                      : "text-gray-700 hover:bg-gray-100"
+                  }`}
+                >
+                  Log in
+                </Link>
+                <Link
+                  to="/register"
+                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-full hover:bg-blue-700 transition-all duration-200"
+                >
+                  Sign up
+                </Link>
+              </div>
+            )}
+
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className={`md:hidden p-2.5 rounded-full transition-colors duration-200 ${
+                darkMode ? "hover:bg-gray-800" : "hover:bg-gray-100"
+              }`}
+              aria-expanded={mobileMenuOpen}
+            >
+              {mobileMenuOpen ? (
+                <FiX className={`h-5 w-5 ${darkMode ? "text-gray-300" : "text-gray-700"}`} />
+              ) : (
+                <FiMenu className={`h-5 w-5 ${darkMode ? "text-gray-300" : "text-gray-700"}`} />
+              )}
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile menu ... (rest of the mobile menu code remains the same) ... */}
+      {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div
-          id="mobile-menu"
-          // ... (mobile menu JSX)
-          className={`md:hidden absolute w-full ${
-            darkMode
-              ? "bg-gray-900 border-gray-700"
-              : "bg-white border-gray-200"
-          } border-t shadow-xl transition-transform duration-300 ease-in-out origin-top ${
-            mobileMenuOpen ? "scale-y-100" : "scale-y-0"
-          }`}
-        >
-          <div className="pt-2 pb-3 space-y-1 px-4">
+        <div className={`md:hidden border-t ${darkMode ? "border-gray-800 bg-gray-900" : "border-gray-100 bg-white"}`}>
+          <div className="px-4 py-3 space-y-2">
             <Link
               to="/shop"
-              className={`block pl-3 pr-4 py-3 rounded-lg font-medium ${
-                darkMode
-                  ? "text-gray-300 hover:bg-gray-800 hover:text-white"
-                  : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-              } transition-colors duration-300`}
+              className={`block px-4 py-3 rounded-lg font-medium transition-colors ${
+                darkMode ? "text-gray-300 hover:bg-gray-800" : "text-gray-700 hover:bg-gray-100"
+              }`}
               onClick={() => setMobileMenuOpen(false)}
             >
-              Shop All
+              All Products
             </Link>
-            {categories.map((category) => (
+            {categories.map((cat) => (
               <Link
-                key={category.name}
-                to={category.to}
-                className={`block pl-3 pr-4 py-3 rounded-lg font-medium ${
-                  darkMode
-                    ? "text-gray-300 hover:bg-gray-800 hover:text-white"
-                    : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                } transition-colors duration-300`}
+                key={cat.name}
+                to={cat.to}
+                className={`block px-4 py-3 rounded-lg font-medium transition-colors ${
+                  darkMode ? "text-gray-300 hover:bg-gray-800" : "text-gray-700 hover:bg-gray-100"
+                }`}
                 onClick={() => setMobileMenuOpen(false)}
               >
-                {category.name}
+                {cat.name}
               </Link>
             ))}
           </div>
-
-          <div
-            className={`pt-4 pb-3 border-t px-4 flex items-center justify-between ${
-              darkMode ? "border-gray-700" : "border-gray-200"
-            }`}
-          >
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => {
-                  setDarkMode(!darkMode);
-                  setMobileMenuOpen(false);
-                }}
-                className={`p-2 rounded-full ${
-                  darkMode
-                    ? "text-yellow-300 hover:bg-gray-700"
-                    : "text-gray-600 hover:bg-gray-200"
-                }`}
-                aria-label="Toggle dark mode"
-              >
-                {darkMode ? (
-                  <FiSun className="h-6 w-6" />
-                ) : (
-                  <FiMoon className="h-6 w-6" />
-                )}
-              </button>
-
-              <Link
-                to="/wishlist"
-                onClick={() => setMobileMenuOpen(false)}
-                className={`p-2 rounded-full ${
-                  darkMode
-                    ? "text-gray-300 hover:bg-gray-700"
-                    : "text-gray-700 hover:bg-gray-200"
-                }`}
-                aria-label="Wishlist"
-              >
-                <FiHeart className="h-6 w-6" />
-              </Link>
-
-              <Link
-                to="/account"
-                onClick={() => setMobileMenuOpen(false)}
-                className={`p-2 rounded-full ${
-                  darkMode
-                    ? "text-gray-300 hover:bg-gray-700"
-                    : "text-gray-700 hover:bg-gray-200"
-                }`}
-                aria-label="Account"
-              >
-                <FiUser className="h-6 w-6" />
-              </Link>
-            </div>
-          </div>
-
-          <div
-            className={`px-4 py-3 border-t ${
-              darkMode ? "border-gray-700" : "border-gray-200"
-            }`}
-          >
-            <Link
-              to="/account"
-              onClick={() => setMobileMenuOpen(false)}
-              className={`flex items-center space-x-3 py-3`}
+          <div className={`border-t px-4 py-3 ${darkMode ? "border-gray-800" : "border-gray-100"}`}>
+            <button
+              onClick={() => { setDarkMode(!darkMode); setMobileMenuOpen(false); }}
+              className={`flex items-center gap-3 px-4 py-3 w-full rounded-lg transition-colors ${
+                darkMode ? "hover:bg-gray-800" : "hover:bg-gray-100"
+              }`}
             >
-              <div
-                className={`p-2 rounded-full ${
-                  darkMode ? "bg-gray-700" : "bg-gray-200"
-                }`}
-              >
-                <FiUser className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="font-medium">Your Account</p>
-                <p
-                  className={`text-sm ${
-                    darkMode ? "text-gray-400" : "text-gray-500"
-                  }`}
-                >
-                  View profile & orders
-                </p>
-              </div>
-            </Link>
+              {darkMode ? <FiSun className="h-5 w-5 text-yellow-400" /> : <FiMoon className="h-5 w-5 text-gray-600" />}
+              <span className={darkMode ? "text-gray-300" : "text-gray-700"}>
+                {darkMode ? 'Light Mode' : 'Dark Mode'}
+              </span>
+            </button>
           </div>
         </div>
       )}
@@ -403,4 +347,4 @@ const Navbar = ({ cartCount, darkMode, setDarkMode }) => {
   );
 };
 
-export default Navbar;
+export default Header;
