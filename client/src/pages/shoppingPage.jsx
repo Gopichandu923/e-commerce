@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
-import axios from "axios";
 import ProductCard from "../components/ProductCard.jsx";
-
-const API_BASE_URL = "http://localhost:4040/api";
+import { GetAllCategories, GetAllProducts, GetProductsByCategory } from "../Api.js";
 
 const priceRanges = [
   { label: "All Prices", min: 0, max: Infinity },
@@ -32,7 +30,7 @@ const ShopPage = () => {
   useEffect(() => {
     const fetchAllCategories = async () => {
       try {
-        const { data } = await axios.get(`${API_BASE_URL}/product/categories`);
+        const { data } = await GetAllCategories();
 
         setAllAvailableCategories([
           "all",
@@ -53,30 +51,22 @@ const ShopPage = () => {
       setLoading(true);
       setError(null);
       try {
-        let url = `${API_BASE_URL}/product`;
+        let response;
         if (routeCategory) {
-          url = `${API_BASE_URL}/product/category/${encodeURIComponent(
-            routeCategory.toLowerCase()
-          )}`;
+          response = await GetProductsByCategory(routeCategory.toLowerCase());
           setSelectedCategory(routeCategory.toLowerCase());
         } else {
-          // If coming from a query param like /shop?category=electronics
           const queryParams = new URLSearchParams(location.search);
           const queryCategory = queryParams.get("category");
           if (queryCategory) {
-            url = `${API_BASE_URL}/product/category/${encodeURIComponent(
-              queryCategory.toLowerCase()
-            )}`;
+            response = await GetProductsByCategory(queryCategory.toLowerCase());
             setSelectedCategory(queryCategory.toLowerCase());
           } else {
-            setSelectedCategory("all"); // Default if no route or query param
+            response = await GetAllProducts();
+            setSelectedCategory("all");
           }
         }
-        const { data } = await axios.get(url);
-        // Your getAllProducts and getProductsByCategory controllers should return an array of products
-        // If they return an object like { products: [...] }, adjust here:
-        // setProducts(Array.isArray(data) ? data : data.products || []);
-        setProducts(Array.isArray(data) ? data : []);
+        setProducts(Array.isArray(response.data) ? response.data : []);
       } catch (err) {
         console.error("Failed to fetch products:", err);
         setError(err.message || "Failed to load products.");
@@ -87,7 +77,7 @@ const ShopPage = () => {
     };
 
     fetchProducts();
-  }, [routeCategory, location.search]); // Re-fetch if routeCategory or query params change
+  }, [routeCategory, location.search]);
 
   // Apply filters whenever products or filter criteria change
   const applyFilters = useCallback(() => {
