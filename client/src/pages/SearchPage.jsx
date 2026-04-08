@@ -31,13 +31,15 @@ const SearchPage = ({ darkMode }) => {
     return params.get("q") || "";
   };
 
-  const [keyword, setKeyword] = useState(getSearchParams());
+  const [keyword, setKeyword] = useState("");
 
   useEffect(() => {
     const q = getSearchParams();
     setKeyword(q);
     if (q) {
       fetchProducts(q, 1);
+    } else {
+      setProducts([]);
     }
   }, [location.search]);
 
