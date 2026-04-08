@@ -21,7 +21,7 @@ connectDB();
 const app = express();
 
 app.use(cors({
-  origin: ["https://shopez-ecommerce.netlify.app", "http://localhost:5173"],
+  origin: ["https://shopez-ecommerce.netlify.app", "http://localhost:5173", "https://www.shopez-ecommerce.netlify.app"],
   credentials: true
 }));
 app.use(express.json());
