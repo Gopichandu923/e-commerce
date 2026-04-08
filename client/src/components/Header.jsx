@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -22,9 +22,10 @@ const Header = ({ cartCount, darkMode, setDarkMode }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const [suggestions, setSuggestions] = useState([]);
+  const [showDropdown, setShowDropdown] = useState(false);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
-  const searchInputRef = useRef(null);
-  
+  const searchTimeoutRef = useRef(null);
+
   const categories = [
     { name: "Men's Clothing", to: "/shop/mens-clothing" },
     { name: "Women's Clothing", to: "/shop/womens-clothing" },
@@ -33,38 +34,47 @@ const Header = ({ cartCount, darkMode, setDarkMode }) => {
     { name: "Home & Furniture", to: "/shop/furniture" },
   ];
 
-  useEffect(() => {
-    const delayDebounce = setTimeout(async () => {
-      if (searchValue.trim().length >= 2) {
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchValue(value);
+
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    if (value.trim().length >= 2) {
+      searchTimeoutRef.current = setTimeout(async () => {
         setLoadingSuggestions(true);
         try {
-          const response = await GetProducts(searchValue.trim(), 1, 5);
-          if (response.data?.products) {
-            setSuggestions(response.data.products);
-          }
+          const response = await GetProducts(value.trim(), 1, 5);
+          const products = response.data?.products || [];
+          setSuggestions(products);
+          setShowDropdown(products.length > 0);
         } catch (error) {
-          console.error("Search suggestions error:", error);
+          console.error("Search error:", error);
+          setSuggestions([]);
+          setShowDropdown(false);
         } finally {
           setLoadingSuggestions(false);
         }
-      } else {
-        setSuggestions([]);
-      }
-    }, 300);
+      }, 500);
+    } else {
+      setSuggestions([]);
+      setShowDropdown(false);
+    }
+  };
 
-    return () => clearTimeout(delayDebounce);
-  }, [searchValue]);
-
-  const handleSearchSubmit = useCallback((e) => {
+  const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (searchValue.trim()) {
       navigate(`/search?q=${encodeURIComponent(searchValue.trim())}`);
       setSearchValue("");
       setSuggestions([]);
+      setShowDropdown(false);
     }
-  }, [searchValue, navigate]);
+  };
 
-  const handleSuggestionClick = useCallback((productId, productName) => {
+  const handleSuggestionClick = (productId, productName) => {
     if (productId) {
       navigate(`/product/${productId}`);
     } else {
@@ -72,117 +82,14 @@ const Header = ({ cartCount, darkMode, setDarkMode }) => {
     }
     setSearchValue("");
     setSuggestions([]);
-  }, [navigate]);
+    setShowDropdown(false);
+  };
 
-  const handleClearSearch = useCallback(() => {
+  const handleClearSearch = () => {
     setSearchValue("");
     setSuggestions([]);
-  }, []);
-
-  const SearchBar = useCallback(() => {
-    const showDropdown = searchValue.trim().length >= 2 && suggestions.length > 0;
-    
-    return (
-    <div className="relative flex-1 max-w-xl mx-4">
-      <form onSubmit={handleSearchSubmit} className="relative">
-        <div className={`flex items-center w-full rounded-full border transition-all duration-300 ${
-          darkMode 
-            ? "bg-gray-800 border-gray-700 focus-within:border-blue-500" 
-            : "bg-gray-100 border-gray-200 focus-within:border-blue-500"
-        } focus-within:ring-2 focus-within:ring-blue-500/20`}>
-          <div className="pl-4">
-            <FiSearch className={`h-5 w-5 ${darkMode ? "text-gray-400" : "text-gray-500"}`} />
-          </div>
-          <input
-            ref={searchInputRef}
-            id="search-input"
-            type="text"
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-            autoComplete="off"
-            placeholder="Search for products, brands..."
-            className={`w-full py-2.5 px-3 bg-transparent border-none outline-none ${
-              darkMode 
-                ? "text-white placeholder-gray-500" 
-                : "text-gray-900 placeholder-gray-500"
-            }`}
-          />
-          {searchValue && (
-            <button
-              type="button"
-              onClick={handleClearSearch}
-              className="pr-4 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full p-1 transition-colors"
-            >
-              <FiX className={`h-4 w-4 ${darkMode ? "text-gray-400" : "text-gray-500"}`} />
-            </button>
-          )}
-        </div>
-      </form>
-      
-      {showDropdown && (
-        <div className={`absolute top-full left-0 right-0 mt-2 rounded-xl shadow-xl border z-50 overflow-hidden ${
-          darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
-        }`}>
-          {loadingSuggestions ? (
-            <div className={`p-4 flex items-center justify-center gap-2 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
-              <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
-              Searching...
-            </div>
-          ) : (
-            <ul>
-              {suggestions.map((product) => (
-                <li
-                  key={product._id}
-                  onClick={() => handleSuggestionClick(product._id, product.name)}
-                  className={`flex items-center p-3 cursor-pointer transition-colors ${
-                    darkMode ? "hover:bg-gray-700" : "hover:bg-gray-50"
-                  }`}
-                >
-                  <div className="relative w-12 h-12 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
-                    <img
-                      src={product.image || "https://via.placeholder.com/48"}
-                      alt={product.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0 ml-3">
-                    <p className={`text-sm font-medium truncate ${
-                      darkMode ? "text-white" : "text-gray-900"
-                    }`}>
-                      {product.name}
-                    </p>
-                    <p className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
-                      {product.category}
-                    </p>
-                  </div>
-                  <span className={`text-sm font-semibold ml-2 ${
-                    darkMode ? "text-blue-400" : "text-blue-600"
-                  }`}>
-                    ${product.price?.toFixed(2)}
-                  </span>
-                </li>
-              ))}
-              <li
-                onClick={() => handleSuggestionClick(null, searchValue)}
-                className={`p-3 cursor-pointer text-center border-t transition-colors ${
-                  darkMode
-                    ? "hover:bg-gray-700 border-gray-700"
-                    : "hover:bg-gray-50 border-gray-100"
-                }`}
-              >
-                <span className={`text-sm font-medium ${
-                  darkMode ? "text-blue-400" : "text-blue-600"
-                }`}>
-                  See all results for "{searchValue}" →
-                </span>
-              </li>
-            </ul>
-          )}
-        </div>
-      )}
-    </div>
-    );
-  }, [darkMode, searchValue, suggestions, loadingSuggestions, handleSearchSubmit, handleClearSearch, handleSuggestionClick]);
+    setShowDropdown(false);
+  };
 
   return (
     <nav className={`sticky top-0 z-50 ${darkMode ? "bg-gray-900/95" : "bg-white/95"} backdrop-blur-md shadow-sm`}>
@@ -203,27 +110,119 @@ const Header = ({ cartCount, darkMode, setDarkMode }) => {
           </Link>
 
           {/* Search Bar */}
-          <div className="flex-1 max-w-2xl">
-            <SearchBar />
+          <div className="flex-1 max-w-xl mx-4 relative">
+            <form onSubmit={handleSearchSubmit}>
+              <div className={`flex items-center w-full rounded-full border transition-all duration-300 ${
+                darkMode 
+                  ? "bg-gray-800 border-gray-700 focus-within:border-blue-500" 
+                  : "bg-gray-100 border-gray-200 focus-within:border-blue-500"
+              } focus-within:ring-2 focus-within:ring-blue-500/20`}>
+                <div className="pl-4">
+                  <FiSearch className={`h-5 w-5 ${darkMode ? "text-gray-400" : "text-gray-500"}`} />
+                </div>
+                <input
+                  type="text"
+                  value={searchValue}
+                  onChange={handleSearchChange}
+                  onFocus={() => searchValue.trim().length >= 2 && suggestions.length > 0 && setShowDropdown(true)}
+                  autoComplete="off"
+                  placeholder="Search for products..."
+                  className={`w-full py-2.5 px-3 bg-transparent border-none outline-none ${
+                    darkMode 
+                      ? "text-white placeholder-gray-500" 
+                      : "text-gray-900 placeholder-gray-500"
+                  }`}
+                />
+                {searchValue && (
+                  <button
+                    type="button"
+                    onClick={handleClearSearch}
+                    className="pr-4"
+                  >
+                    <FiX className={`h-4 w-4 ${darkMode ? "text-gray-400" : "text-gray-500"}`} />
+                  </button>
+                )}
+              </div>
+            </form>
+            
+            {showDropdown && suggestions.length > 0 && (
+              <div className={`absolute top-full left-0 right-0 mt-2 rounded-xl shadow-xl border z-50 overflow-hidden ${
+                darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
+              }`}>
+                {loadingSuggestions ? (
+                  <div className={`p-4 flex items-center justify-center gap-2 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+                    <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                    Searching...
+                  </div>
+                ) : (
+                  <ul>
+                    {suggestions.map((product) => (
+                      <li
+                        key={product._id}
+                        onClick={() => handleSuggestionClick(product._id, product.name)}
+                        className={`flex items-center p-3 cursor-pointer transition-colors ${
+                          darkMode ? "hover:bg-gray-700" : "hover:bg-gray-50"
+                        }`}
+                      >
+                        <div className="relative w-12 h-12 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
+                          <img
+                            src={product.image || "https://via.placeholder.com/48"}
+                            alt={product.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0 ml-3">
+                          <p className={`text-sm font-medium truncate ${
+                            darkMode ? "text-white" : "text-gray-900"
+                          }`}>
+                            {product.name}
+                          </p>
+                          <p className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+                            {product.category}
+                          </p>
+                        </div>
+                        <span className={`text-sm font-semibold ml-2 ${
+                          darkMode ? "text-blue-400" : "text-blue-600"
+                        }`}>
+                          ${product.price?.toFixed(2)}
+                        </span>
+                      </li>
+                    ))}
+                    <li
+                      onClick={() => handleSuggestionClick(null, searchValue)}
+                      className={`p-3 cursor-pointer text-center border-t transition-colors ${
+                        darkMode
+                          ? "hover:bg-gray-700 border-gray-700"
+                          : "hover:bg-gray-50 border-gray-100"
+                      }`}
+                    >
+                      <span className={`text-sm font-medium ${
+                        darkMode ? "text-blue-400" : "text-blue-600"
+                      }`}>
+                        See all results for "{searchValue}" →
+                      </span>
+                    </li>
+                  </ul>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Navigation Icons */}
           <div className="flex items-center gap-1">
             <Link
               to="/favourite"
-              className={`p-2.5 rounded-full transition-all duration-200 ${
-                darkMode ? "text-gray-400 hover:text-red-400 hover:bg-gray-800" : "text-gray-600 hover:text-red-500 hover:bg-gray-100"
-              }`}
+              className={`p-2.5 rounded-full transition-all duration-200 ${darkMode ? "text-gray-400 hover:text-red-400 hover:bg-gray-800" : "text-gray-600 hover:text-red-500 hover:bg-gray-100"
+                }`}
               aria-label="Wishlist"
             >
               <FiHeart className="h-5 w-5" />
             </Link>
-            
+
             <Link
               to="/cart"
-              className={`relative p-2.5 rounded-full transition-all duration-200 ${
-                darkMode ? "text-gray-400 hover:bg-gray-800" : "text-gray-600 hover:bg-gray-100"
-              }`}
+              className={`relative p-2.5 rounded-full transition-all duration-200 ${darkMode ? "text-gray-400 hover:bg-gray-800" : "text-gray-600 hover:bg-gray-100"
+                }`}
               aria-label="Cart"
             >
               <FiShoppingCart className="h-5 w-5" />
@@ -238,26 +237,22 @@ const Header = ({ cartCount, darkMode, setDarkMode }) => {
               <div className="flex items-center gap-2 ml-2">
                 <Link
                   to="/profile"
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-all duration-200 ${
-                    darkMode ? "hover:bg-gray-800" : "hover:bg-gray-100"
-                  }`}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-all duration-200 ${darkMode ? "hover:bg-gray-800" : "hover:bg-gray-100"
+                    }`}
                 >
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    darkMode ? "bg-gray-700" : "bg-blue-100"
-                  }`}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${darkMode ? "bg-gray-700" : "bg-blue-100"
+                    }`}>
                     <FiUser className={`h-4 w-4 ${darkMode ? "text-gray-300" : "text-blue-600"}`} />
                   </div>
-                  <span className={`hidden lg:block text-sm font-medium ${
-                    darkMode ? "text-gray-300" : "text-gray-700"
-                  }`}>
+                  <span className={`hidden lg:block text-sm font-medium ${darkMode ? "text-gray-300" : "text-gray-700"
+                    }`}>
                     {user?.name?.split(' ')[0]}
                   </span>
                 </Link>
                 <button
                   onClick={() => dispatch(logout())}
-                  className={`p-2 rounded-full transition-all duration-200 ${
-                    darkMode ? "text-gray-400 hover:text-red-400 hover:bg-gray-800" : "text-gray-600 hover:text-red-500 hover:bg-gray-100"
-                  }`}
+                  className={`p-2 rounded-full transition-all duration-200 ${darkMode ? "text-gray-400 hover:text-red-400 hover:bg-gray-800" : "text-gray-600 hover:text-red-500 hover:bg-gray-100"
+                    }`}
                   aria-label="Logout"
                 >
                   <FiLogOut className="h-5 w-5" />
@@ -267,11 +262,10 @@ const Header = ({ cartCount, darkMode, setDarkMode }) => {
               <div className="flex items-center gap-2 ml-2">
                 <Link
                   to="/login"
-                  className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 ${
-                    darkMode 
-                      ? "text-gray-300 hover:bg-gray-800" 
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`}
+                  className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 ${darkMode
+                    ? "text-gray-300 hover:bg-gray-800"
+                    : "text-gray-700 hover:bg-gray-100"
+                    }`}
                 >
                   Log in
                 </Link>
@@ -287,9 +281,8 @@ const Header = ({ cartCount, darkMode, setDarkMode }) => {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className={`md:hidden p-2.5 rounded-full transition-colors duration-200 ${
-                darkMode ? "hover:bg-gray-800" : "hover:bg-gray-100"
-              }`}
+              className={`md:hidden p-2.5 rounded-full transition-colors duration-200 ${darkMode ? "hover:bg-gray-800" : "hover:bg-gray-100"
+                }`}
               aria-expanded={mobileMenuOpen}
             >
               {mobileMenuOpen ? (
@@ -308,9 +301,8 @@ const Header = ({ cartCount, darkMode, setDarkMode }) => {
           <div className="px-4 py-3 space-y-2">
             <Link
               to="/shop"
-              className={`block px-4 py-3 rounded-lg font-medium transition-colors ${
-                darkMode ? "text-gray-300 hover:bg-gray-800" : "text-gray-700 hover:bg-gray-100"
-              }`}
+              className={`block px-4 py-3 rounded-lg font-medium transition-colors ${darkMode ? "text-gray-300 hover:bg-gray-800" : "text-gray-700 hover:bg-gray-100"
+                }`}
               onClick={() => setMobileMenuOpen(false)}
             >
               All Products
@@ -319,9 +311,8 @@ const Header = ({ cartCount, darkMode, setDarkMode }) => {
               <Link
                 key={cat.name}
                 to={cat.to}
-                className={`block px-4 py-3 rounded-lg font-medium transition-colors ${
-                  darkMode ? "text-gray-300 hover:bg-gray-800" : "text-gray-700 hover:bg-gray-100"
-                }`}
+                className={`block px-4 py-3 rounded-lg font-medium transition-colors ${darkMode ? "text-gray-300 hover:bg-gray-800" : "text-gray-700 hover:bg-gray-100"
+                  }`}
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {cat.name}
@@ -331,9 +322,8 @@ const Header = ({ cartCount, darkMode, setDarkMode }) => {
           <div className={`border-t px-4 py-3 ${darkMode ? "border-gray-800" : "border-gray-100"}`}>
             <button
               onClick={() => { setDarkMode(!darkMode); setMobileMenuOpen(false); }}
-              className={`flex items-center gap-3 px-4 py-3 w-full rounded-lg transition-colors ${
-                darkMode ? "hover:bg-gray-800" : "hover:bg-gray-100"
-              }`}
+              className={`flex items-center gap-3 px-4 py-3 w-full rounded-lg transition-colors ${darkMode ? "hover:bg-gray-800" : "hover:bg-gray-100"
+                }`}
             >
               {darkMode ? <FiSun className="h-5 w-5 text-yellow-400" /> : <FiMoon className="h-5 w-5 text-gray-600" />}
               <span className={darkMode ? "text-gray-300" : "text-gray-700"}>
