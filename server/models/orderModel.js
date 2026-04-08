@@ -13,11 +13,13 @@ const orderItemSchema = new mongoose.Schema({
 });
 
 const shippingAddressSchema = new mongoose.Schema({
-  address: { type: String, required: true, trim: true },
+  name: { type: String, required: true, trim: true },
+  street: { type: String, required: true, trim: true },
   city: { type: String, required: true, trim: true },
-  postalCode: { type: String, required: true, trim: true },
-  country: { type: String, required: true, trim: true },
-  phone: { type: String, trim: true },
+  state: { type: String, required: true, trim: true },
+  zipCode: { type: String, required: true, trim: true },
+  country: { type: String, default: "India", trim: true },
+  phone: { type: String, required: true, trim: true },
 });
 
 const paymentResultSchema = new mongoose.Schema({
@@ -40,7 +42,7 @@ const orderSchema = new mongoose.Schema(
     paymentMethod: {
       type: String,
       required: true,
-      enum: ["PayPal", "Stripe", "CashOnDelivery", "BankTransfer"],
+      enum: ["cod", "card", "PayPal", "Stripe", "BankTransfer"],
     },
     paymentResult: paymentResultSchema,
     itemsPrice: {
