@@ -94,6 +94,11 @@ const updateProduct = asyncHandler(async (req, res) => {
   const product = await Product.findById(req.params.id);
 
   if (product) {
+    if (product.user.toString() !== req.user._id.toString()) {
+      res.status(403);
+      throw new Error("You can only update your own products");
+    }
+
     product.name = name || product.name;
     product.price = price || product.price;
     product.description = description || product.description;
@@ -114,6 +119,11 @@ const deleteProduct = asyncHandler(async (req, res) => {
   const product = await Product.findById(req.params.id);
 
   if (product) {
+    if (product.user.toString() !== req.user._id.toString()) {
+      res.status(403);
+      throw new Error("You can only delete your own products");
+    }
+
     await product.remove();
     res.status(200).json({ message: "Product removed" });
   } else {
