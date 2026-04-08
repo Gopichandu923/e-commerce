@@ -10,13 +10,10 @@ import {
   FiX,
   FiMoon,
   FiSun,
-  FiLogOut,
 } from "react-icons/fi";
-import { logout } from "../redux/auth/authActions";
 import { GetProducts } from "../Api";
 
 const Header = ({ cartCount, darkMode, setDarkMode }) => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -249,14 +246,6 @@ const Header = ({ cartCount, darkMode, setDarkMode }) => {
                     {user?.name?.split(' ')[0]}
                   </span>
                 </Link>
-                <button
-                  onClick={() => dispatch(logout())}
-                  className={`p-2 rounded-full transition-all duration-200 ${darkMode ? "text-gray-400 hover:text-red-400 hover:bg-gray-800" : "text-gray-600 hover:text-red-500 hover:bg-gray-100"
-                    }`}
-                  aria-label="Logout"
-                >
-                  <FiLogOut className="h-5 w-5" />
-                </button>
               </div>
             ) : (
               <div className="flex items-center gap-2 ml-2">
