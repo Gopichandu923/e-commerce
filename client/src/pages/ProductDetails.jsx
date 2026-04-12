@@ -1,13 +1,5 @@
-// src/pages/ProductDetailPage.jsx
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import {
-  FiHeart,
-  FiShoppingCart,
-  FiMessageSquare,
-  FiSend,
-  FiChevronLeft,
-} from "react-icons/fi";
 import Rating from "../components/Rating";
 import ProductCard from "../components/ProductCard";
 import { getUserFromCookie } from "../utils/cookie.js";
@@ -20,7 +12,7 @@ import {
   SubmitProductReview
 } from "../Api.js";
 
-const ProductDetailPage = () => {
+const ProductDetailPage = ({ darkMode = false }) => {
   const { productId } = useParams();
   const navigate = useNavigate();
 
@@ -173,67 +165,65 @@ const ProductDetailPage = () => {
 
   if (loading) {
     return (
-      <div className="container mx-auto p-8 text-center text-xl">
-        Loading product details...
+      <div className="container mx-auto p-8 text-center">
+        <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#735c00]"></div>
       </div>
     );
   }
 
   if (error || !product) {
     return (
-      <div className="container mx-auto p-8 text-center text-red-500 text-xl">
+      <div className="container mx-auto p-8 text-center text-[#ba1a1a]">
         Error: {error || "Product not found."}
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 lg:p-8">
-      {/* Back Button */}
+    <div className="container mx-auto">
       <button
         onClick={() => navigate(-1)}
-        className="mb-6 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gray-600 hover:bg-gray-700"
+        className="mb-8 inline-flex items-center px-4 py-2 bg-[#f5f3f4] hover:bg-[#e4e2e3] text-[#041627] font-label text-sm rounded-lg transition-colors"
       >
-        <FiChevronLeft className="-ml-1 mr-2 h-5 w-5" />
+        <span className="material-symbols-outlined mr-2 text-lg">arrow_back</span>
         Back
       </button>
 
-      {/* Product Details */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 mb-12">
-        <div className="bg-gray-100 rounded-lg p-4 flex justify-center items-center shadow-lg">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 mb-16">
+        <div className="bg-[#f5f3f4] rounded-xl p-8 flex justify-center items-center">
           <img
             src={
               product.image ||
               "https://via.placeholder.com/600x600?text=No+Image"
             }
             alt={product.name}
-            className="max-w-full max-h-[70vh] object-contain rounded-md"
+            className="max-w-full max-h-[70vh] object-contain rounded-lg"
           />
         </div>
         <div className="flex flex-col justify-between">
           <div>
-            <p className="text-sm text-gray-500 mb-1">
+            <p className="text-sm text-[#44474c] mb-2 font-label uppercase tracking-wider">
               {product.category}
               {product.brand && ` | ${product.brand}`}
             </p>
-            <h1 className="text-3xl lg:text-4xl font-bold text-gray-800 mb-3">
+            <h1 className="text-3xl lg:text-4xl font-headline font-bold text-[#041627] mb-4 tracking-tight">
               {product.name}
             </h1>
-            <div className="mb-4">
+            <div className="mb-6">
               <Rating
                 value={product.rating}
                 text={`${product.numReviews} reviews`}
               />
             </div>
-            <p className="text-3xl font-semibold text-blue-600 mb-4">
+            <p className="text-3xl font-headline font-bold text-[#041627] mb-6">
               ${product.price?.toFixed(2)}
             </p>
-            <p className="text-gray-700 leading-relaxed mb-6">
+            <p className="text-[#44474c] leading-relaxed mb-6 font-body">
               {product.description}
             </p>
             <p
-              className={`mb-1 font-semibold ${
-                product.countInStock > 0 ? "text-green-600" : "text-red-600"
+              className={`mb-4 font-label text-sm tracking-wide ${
+                product.countInStock > 0 ? "text-[#735c00]" : "text-[#ba1a1a]"
               }`}
             >
               {product.countInStock > 0
@@ -242,18 +232,17 @@ const ProductDetailPage = () => {
             </p>
           </div>
 
-          {/* Action Buttons */}
           <div className="mt-auto">
             {product.countInStock > 0 && (
               <div className="flex items-center mb-6 space-x-4">
-                <label htmlFor="quantity" className="font-medium text-gray-700">
+                <label htmlFor="quantity" className="font-label text-[#44474c]">
                   Quantity:
                 </label>
                 <select
                   id="quantity"
                   value={quantity}
                   onChange={handleQuantityChange}
-                  className="p-2 border border-gray-300 rounded-md"
+                  className="p-2 bg-[#f5f3f4] rounded-lg border-0 font-body text-[#041627]"
                 >
                   {[...Array(Math.min(product.countInStock, 10)).keys()].map(
                     (x) => (
@@ -269,17 +258,21 @@ const ProductDetailPage = () => {
               <button
                 onClick={addToCartHandler}
                 disabled={product.countInStock === 0}
-                className="flex-1 flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md"
+                className={`flex-1 flex items-center justify-center font-label text-sm tracking-widest uppercase py-3 px-6 rounded-lg ${
+                  product.countInStock === 0
+                    ? "bg-[#e4e2e3] text-[#44474c] cursor-not-allowed"
+                    : "btn-gradient text-white hover:opacity-90"
+                }`}
               >
-                <FiShoppingCart className="mr-2 h-5 w-5" />
+                <span className="material-symbols-outlined mr-2 text-lg">shopping_cart</span>
                 Add to Cart
               </button>
               <button
                 onClick={addToFavoriteHandler}
                 disabled={favoriteProcessing}
-                className="flex-1 flex items-center justify-center border-2 border-gray-300 text-gray-700 hover:bg-gray-100 font-semibold py-3 px-6 rounded-lg shadow-sm"
+                className="flex-1 flex items-center justify-center border-2 border-[#f5f3f4] text-[#041627] hover:bg-[#f5f3f4] font-label text-sm tracking-widest uppercase py-3 px-6 rounded-lg transition-colors"
               >
-                <FiHeart className="mr-2 h-5 w-5" />
+                <span className="material-symbols-outlined mr-2 text-lg">favorite</span>
                 {favoriteProcessing ? "Adding..." : "Add to Favorites"}
               </button>
             </div>
@@ -287,9 +280,8 @@ const ProductDetailPage = () => {
         </div>
       </div>
 
-      {/* Reviews */}
-      <div className="mb-12">
-        <h2 className="text-2xl font-semibold text-gray-800 mb-6 border-b pb-3">
+      <div className="mb-16">
+        <h2 className="text-2xl font-headline font-bold text-[#041627] mb-8 pb-4 border-b border-[#f5f3f4]">
           Customer Reviews
         </h2>
         {product.reviews && product.reviews.length > 0 ? (
@@ -297,38 +289,37 @@ const ProductDetailPage = () => {
             {product.reviews.map((review) => (
               <div
                 key={review._id}
-                className="p-4 bg-gray-50 rounded-lg shadow"
+                className="p-6 bg-[#f5f3f4] rounded-xl"
               >
-                <div className="flex justify-between items-center mb-1">
-                  <strong className="text-gray-700">{review.name}</strong>
-                  <span className="text-xs text-gray-500">
+                <div className="flex justify-between items-center mb-2">
+                  <strong className="text-[#041627] font-body">{review.name}</strong>
+                  <span className="text-xs text-[#44474c] font-label">
                     {new Date(review.createdAt).toLocaleDateString()}
                   </span>
                 </div>
                 <Rating value={review.rating} />
-                <p className="text-gray-600">{review.comment}</p>
+                <p className="text-[#44474c] font-body mt-2">{review.comment}</p>
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-gray-600">No reviews yet for this product.</p>
+          <p className="text-[#44474c] font-body">No reviews yet for this product.</p>
         )}
       </div>
 
-      {/* Write a Review */}
       {getUserFromCookie() ? (
-        <div className="p-6 bg-white rounded-lg shadow-md">
-          <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-            <FiMessageSquare className="mr-2 h-6 w-6 text-blue-500" />
+        <div className="p-8 bg-[#f5f3f4] rounded-xl mb-16">
+          <h3 className="text-xl font-headline font-bold text-[#041627] mb-6 flex items-center">
+            <span className="material-symbols-outlined mr-2 text-xl">edit</span>
             Write a Customer Review
           </h3>
           {reviewSuccess && (
-            <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-md">
+            <div className="mb-4 p-3 bg-[#fed65b] text-[#241a00] rounded-lg font-label text-sm">
               {reviewSuccess}
             </div>
           )}
           {reviewError && (
-            <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">
+            <div className="mb-4 p-3 bg-[#ffdad6] text-[#93000a] rounded-lg font-label text-sm">
               {reviewError}
             </div>
           )}
@@ -336,7 +327,7 @@ const ProductDetailPage = () => {
             <div className="mb-4">
               <label
                 htmlFor="rating"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="block text-sm font-label text-[#44474c] mb-2"
               >
                 Your Rating
               </label>
@@ -344,7 +335,7 @@ const ProductDetailPage = () => {
                 id="rating"
                 value={reviewRating}
                 onChange={(e) => setReviewRating(Number(e.target.value))}
-                className="w-full sm:w-1/2 p-2 border border-gray-300 rounded-md"
+                className="w-full sm:w-1/2 p-2.5 bg-white rounded-lg border-0 font-body text-[#041627]"
                 required
               >
                 <option value="0">Select...</option>
@@ -358,7 +349,7 @@ const ProductDetailPage = () => {
             <div className="mb-4">
               <label
                 htmlFor="comment"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="block text-sm font-label text-[#44474c] mb-2"
               >
                 Your Comment
               </label>
@@ -367,37 +358,35 @@ const ProductDetailPage = () => {
                 rows="4"
                 value={reviewComment}
                 onChange={(e) => setReviewComment(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md"
+                className="w-full p-3 bg-white rounded-lg border-0 font-body text-[#041627]"
                 required
               ></textarea>
             </div>
             <button
               type="submit"
               disabled={reviewSubmitting}
-              className="inline-flex items-center px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md"
+              className="btn-gradient px-6 py-3 rounded-lg text-white font-label text-sm tracking-widest uppercase hover:opacity-90 transition-opacity"
             >
-              <FiSend className="mr-2 h-5 w-5" />
               {reviewSubmitting ? "Submitting..." : "Submit Review"}
             </button>
           </form>
         </div>
       ) : (
-        <p className="text-gray-700">
+        <p className="text-[#44474c] font-body mb-16">
           Please{" "}
-          <Link to="/login" className="text-blue-600 hover:underline">
+          <Link to="/login" className="text-[#735c00] hover:text-[#574500] transition-colors">
             sign in
           </Link>{" "}
           to write a review.
         </p>
       )}
 
-      {/* Related Products */}
       {relatedProducts.length > 0 && (
         <div className="mt-16">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-8 text-center border-t pt-8">
+          <h2 className="text-3xl font-headline font-bold text-[#041627] mb-8 text-center">
             You Might Also Like
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
             {relatedProducts.map((relatedProd) => (
               <ProductCard key={relatedProd._id} product={relatedProd} />
             ))}

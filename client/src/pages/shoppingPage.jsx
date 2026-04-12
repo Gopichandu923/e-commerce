@@ -11,7 +11,7 @@ const priceRanges = [
   { label: "$250+", min: 250, max: Infinity },
 ];
 
-const ShopPage = () => {
+const ShopPage = ({ darkMode = false }) => {
   const { categoryName: routeCategory } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
@@ -53,7 +53,8 @@ const ShopPage = () => {
       try {
         let response;
         if (routeCategory) {
-          response = await GetProductsByCategory(routeCategory.toLowerCase());
+          const category = routeCategory.toLowerCase().replace(/-/g, ' ');
+          response = await GetProductsByCategory(category);
           setSelectedCategory(routeCategory.toLowerCase());
         } else {
           const queryParams = new URLSearchParams(location.search);
@@ -69,7 +70,7 @@ const ShopPage = () => {
         setProducts(Array.isArray(response.data) ? response.data : []);
       } catch (err) {
         console.error("Failed to fetch products:", err);
-        setError(err.message || "Failed to load products.");
+        setError(err.response?.data?.message || err.message || "Failed to load products.");
         setProducts([]);
       } finally {
         setLoading(false);
@@ -155,37 +156,40 @@ const ShopPage = () => {
 
   if (loading) {
     return (
-      <div className="container mx-auto p-4 text-center text-xl">
-        Loading products...
+      <div className="container mx-auto p-4 text-center">
+        <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#735c00]"></div>
+        <p className="mt-4 text-[#44474c] font-body">Loading products...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="container mx-auto p-4 text-center text-red-500 text-xl">
+      <div className="container mx-auto p-4 text-center text-[#ba1a1a]">
         Error: {error}
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 lg:p-8">
-      <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-8 text-center">
-        {routeCategory
-          ? `Products in ${routeCategory.charAt(0).toUpperCase() + routeCategory.slice(1)
-          }`
-          : "Our Products"}
-      </h1>
+    <div className="container mx-auto">
+      <div className="space-y-2 mb-10">
+        <span className="text-secondary font-label text-xs tracking-[0.2em] uppercase">
+          Collection
+        </span>
+        <h1 className="text-4xl sm:text-5xl font-headline font-bold tracking-tighter text-primary text-center">
+          {routeCategory
+            ? routeCategory.charAt(0).toUpperCase() + routeCategory.slice(1)
+            : "All Products"}
+        </h1>
+      </div>
 
-      {/* Filters Section */}
-      <div className="mb-10 p-4 sm:p-6 bg-gray-100 rounded-lg shadow-md">
+      <div className="bg-[#f5f3f4] rounded-xl p-6 mb-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 items-end">
-          {/* Search Input */}
           <div>
             <label
               htmlFor="search"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-sm font-label text-[#44474c] mb-2"
             >
               Search Products
             </label>
@@ -194,16 +198,15 @@ const ShopPage = () => {
               id="search"
               value={searchTerm}
               onChange={handleSearchChange}
-              placeholder="Search by name or description..."
-              className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Search by name..."
+              className="w-full p-2.5 bg-white border-0 rounded-lg font-body focus:ring-2 focus:ring-[#735c00]/20 focus:outline-none"
             />
           </div>
 
-          {/* Category Filter */}
           <div>
             <label
               htmlFor="category"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-sm font-label text-[#44474c] mb-2"
             >
               Category
             </label>
@@ -211,7 +214,7 @@ const ShopPage = () => {
               id="category"
               value={selectedCategory}
               onChange={handleCategoryChange}
-              className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white"
+              className="w-full p-2.5 bg-white border-0 rounded-lg font-body focus:ring-2 focus:ring-[#735c00]/20 focus:outline-none"
             >
               {allAvailableCategories.map((cat, index) => (
                 <option key={index} value={cat}>
@@ -223,11 +226,10 @@ const ShopPage = () => {
             </select>
           </div>
 
-          {/* Price Filter */}
           <div>
             <label
               htmlFor="price"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-sm font-label text-[#44474c] mb-2"
             >
               Price Range
             </label>
@@ -235,7 +237,7 @@ const ShopPage = () => {
               id="price"
               value={selectedPriceRange.label}
               onChange={handlePriceChange}
-              className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white"
+              className="w-full p-2.5 bg-white border-0 rounded-lg font-body focus:ring-2 focus:ring-[#735c00]/20 focus:outline-none"
             >
               {priceRanges.map((range) => (
                 <option key={range.label} value={range.label}>
@@ -245,11 +247,10 @@ const ShopPage = () => {
             </select>
           </div>
 
-          {/* Clear Filters Button */}
           <div>
             <button
               onClick={clearFilters}
-              className="w-full bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-md transition-colors duration-300"
+              className="w-full bg-white hover:bg-[#e4e2e3] text-[#041627] py-2.5 px-4 rounded-lg font-label text-sm transition-colors duration-300"
             >
               Clear Filters
             </button>
@@ -257,15 +258,14 @@ const ShopPage = () => {
         </div>
       </div>
 
-      {/* Products Grid */}
       {filteredProducts.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-8 gap-y-12">
           {filteredProducts.map((product) => (
             <ProductCard key={product._id} product={product} />
           ))}
         </div>
       ) : (
-        <div className="text-center text-gray-600 text-xl py-10">
+        <div className="text-center text-[#44474c] text-xl py-10 font-body">
           No products found matching your criteria.
         </div>
       )}

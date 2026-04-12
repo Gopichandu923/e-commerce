@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
-import { FiFilter, FiX, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import ProductCard from "../components/ProductCard";
 import { GetProducts } from "../Api";
 
-const SearchPage = ({ darkMode }) => {
+const SearchPage = ({ darkMode = false }) => {
   const location = useLocation();
   const navigate = useNavigate();
   
@@ -103,24 +102,25 @@ const SearchPage = ({ darkMode }) => {
 
   if (!keyword) {
     return (
-      <div className={`min-h-screen ${darkMode ? "bg-gray-900" : "bg-gray-50"} flex items-center justify-center`}>
-        <div className="text-center">
-          <h2 className={`text-2xl font-semibold ${darkMode ? "text-white" : "text-gray-800"} mb-4`}>
-            Search Products
+      <div className="min-h-screen flex items-center justify-center py-20">
+        <div className="text-center w-full">
+          <span className="text-secondary font-label text-xs tracking-[0.2em] uppercase">
+            Search
+          </span>
+          <h2 className="text-3xl font-headline font-bold text-[#041627] mt-3 mb-6 tracking-tight">
+            Find Your Piece
           </h2>
           <form onSubmit={handleSearch} className="flex gap-2">
             <input
               type="text"
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
-              placeholder="Enter search keyword..."
-              className={`px-4 py-2 rounded-lg border ${
-                darkMode ? "bg-gray-800 border-gray-700 text-white" : "bg-white border-gray-300"
-              } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+              placeholder="Search products..."
+              className="flex-1 px-4 py-3 rounded-lg bg-[#f5f3f4] border-0 font-body text-[#041627] focus:ring-2 focus:ring-[#735c00]/20 focus:outline-none"
             />
             <button
               type="submit"
-              className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              className="px-6 py-3 btn-gradient text-white font-label text-sm tracking-widest uppercase rounded-lg hover:opacity-90 transition-opacity"
             >
               Search
             </button>
@@ -131,35 +131,32 @@ const SearchPage = ({ darkMode }) => {
   }
 
   return (
-    <div className={`min-h-screen ${darkMode ? "bg-gray-900" : "bg-gray-50"} py-8`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="py-8">
+      <div className="w-full px-6">
         <div className="flex flex-col lg:flex-row gap-6">
-          {/* Filters Sidebar */}
           <div className={`lg:w-1/4 ${showFilters ? "block" : "hidden lg:block"}`}>
-            <div className={`${darkMode ? "bg-gray-800" : "bg-white"} rounded-lg shadow p-6`}>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-gray-800"}`}>
+            <div className="bg-[#f5f3f4] rounded-xl p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-headline font-bold text-[#041627]">
                   Filters
                 </h3>
                 <button
                   onClick={clearFilters}
-                  className="text-sm text-blue-500 hover:text-blue-600"
+                  className="text-sm text-[#735c00] hover:text-[#574500] transition-colors font-label"
                 >
                   Clear All
                 </button>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <div>
-                  <label className={`block text-sm font-medium ${darkMode ? "text-gray-300" : "text-gray-700"} mb-2`}>
+                  <label className="block text-sm font-label text-[#44474c] mb-2">
                     Sort By
                   </label>
                   <select
                     value={filters.sort}
                     onChange={(e) => handleFilterChange("sort", e.target.value)}
-                    className={`w-full px-3 py-2 rounded-lg border ${
-                      darkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"
-                    } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                    className="w-full px-3 py-2.5 rounded-lg bg-white border-0 font-body text-[#041627]"
                   >
                     <option value="newest">Newest First</option>
                     <option value="price-asc">Price: Low to High</option>
@@ -169,7 +166,7 @@ const SearchPage = ({ darkMode }) => {
                 </div>
 
                 <div>
-                  <label className={`block text-sm font-medium ${darkMode ? "text-gray-300" : "text-gray-700"} mb-2`}>
+                  <label className="block text-sm font-label text-[#44474c] mb-2">
                     Price Range
                   </label>
                   <div className="flex gap-2">
@@ -178,24 +175,20 @@ const SearchPage = ({ darkMode }) => {
                       placeholder="Min"
                       value={filters.minPrice}
                       onChange={(e) => handleFilterChange("minPrice", e.target.value)}
-                      className={`w-full px-3 py-2 rounded-lg border ${
-                        darkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"
-                      } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                      className="w-full px-3 py-2.5 rounded-lg bg-white border-0 font-body text-[#041627]"
                     />
                     <input
                       type="number"
                       placeholder="Max"
                       value={filters.maxPrice}
                       onChange={(e) => handleFilterChange("maxPrice", e.target.value)}
-                      className={`w-full px-3 py-2 rounded-lg border ${
-                        darkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"
-                      } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                      className="w-full px-3 py-2.5 rounded-lg bg-white border-0 font-body text-[#041627]"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className={`block text-sm font-medium ${darkMode ? "text-gray-300" : "text-gray-700"} mb-2`}>
+                  <label className="block text-sm font-label text-[#44474c] mb-2">
                     Category
                   </label>
                   <input
@@ -203,15 +196,13 @@ const SearchPage = ({ darkMode }) => {
                     placeholder="e.g., Electronics"
                     value={filters.category}
                     onChange={(e) => handleFilterChange("category", e.target.value)}
-                    className={`w-full px-3 py-2 rounded-lg border ${
-                      darkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"
-                    } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                    className="w-full px-3 py-2.5 rounded-lg bg-white border-0 font-body text-[#041627]"
                   />
                 </div>
 
                 <button
                   onClick={applyFilters}
-                  className="w-full py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                  className="w-full py-3 btn-gradient text-white font-label text-sm tracking-widest uppercase rounded-lg hover:opacity-90 transition-opacity"
                 >
                   Apply Filters
                 </button>
@@ -219,94 +210,81 @@ const SearchPage = ({ darkMode }) => {
             </div>
           </div>
 
-          {/* Search Results */}
           <div className="lg:w-3/4">
-            {/* Search Bar */}
-            <div className={`${darkMode ? "bg-gray-800" : "bg-white"} rounded-lg shadow p-4 mb-6`}>
+            <div className="bg-[#f5f3f4] rounded-xl p-4 mb-6">
               <form onSubmit={handleSearch} className="flex gap-2">
                 <input
                   type="text"
                   value={keyword}
                   onChange={(e) => setKeyword(e.target.value)}
                   placeholder="Search products..."
-                  className={`flex-1 px-4 py-2 rounded-lg border ${
-                    darkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"
-                  } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                  className="flex-1 px-4 py-3 rounded-lg bg-white border-0 font-body text-[#041627] focus:ring-2 focus:ring-[#735c00]/20 focus:outline-none"
                 />
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                  className="px-6 py-3 btn-gradient text-white font-label text-sm tracking-widest uppercase rounded-lg hover:opacity-90 transition-opacity"
                 >
                   Search
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowFilters(!showFilters)}
-                  className={`lg:hidden p-2 rounded-lg ${
-                    darkMode ? "bg-gray-700 text-gray-300" : "bg-gray-100 text-gray-700"
-                  }`}
+                  className="lg:hidden p-3 rounded-lg bg-white text-[#041627]"
                 >
-                  <FiFilter />
+                  <span className="material-symbols-outlined text-xl">filter_list</span>
                 </button>
               </form>
             </div>
 
-            {/* Results Header */}
-            <div className="flex items-center justify-between mb-4">
-              <p className={`${darkMode ? "text-gray-300" : "text-gray-600"}`}>
+            <div className="flex items-center justify-between mb-6">
+              <p className="text-[#44474c] font-body">
                 {loading ? "Searching..." : `${pagination.totalProducts} results for "${keyword}"`}
               </p>
             </div>
 
-            {/* Loading/Error/Results */}
             {loading ? (
               <div className="flex items-center justify-center py-20">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#735c00]"></div>
               </div>
             ) : error ? (
               <div className="text-center py-20">
-                <p className="text-red-500">{error}</p>
+                <p className="text-[#ba1a1a] font-body">{error}</p>
               </div>
             ) : products.length === 0 ? (
-              <div className="text-center py-20">
-                <p className={`text-lg ${darkMode ? "text-gray-300" : "text-gray-600"}`}>
+              <div className="text-center py-20 bg-[#f5f3f4] rounded-xl">
+                <p className="text-lg text-[#041627] font-headline font-bold">
                   No products found for "{keyword}"
                 </p>
-                <p className={`mt-2 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+                <p className="mt-2 text-[#44474c] font-body">
                   Try different keywords or adjust your filters
                 </p>
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-12">
                   {products.map((product) => (
-                    <ProductCard key={product._id} product={product} darkMode={darkMode} />
+                    <ProductCard key={product._id} product={product} />
                   ))}
                 </div>
 
-                {/* Pagination */}
                 {pagination.pages > 1 && (
-                  <div className="flex items-center justify-center mt-8 gap-2">
+                  <div className="flex items-center justify-center mt-12 gap-2">
                     <button
                       onClick={() => handlePageChange(pagination.page - 1)}
                       disabled={pagination.page === 1}
-                      className={`p-2 rounded-lg ${
-                        darkMode ? "bg-gray-700 text-white" : "bg-white text-gray-700"
-                      } disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-500 hover:text-white transition-colors`}
+                      className="p-2 rounded-lg bg-[#f5f3f4] text-[#041627] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#e4e2e3] transition-colors"
                     >
-                      <FiChevronLeft />
+                      <span className="material-symbols-outlined">chevron_left</span>
                     </button>
                     {Array.from({ length: pagination.pages }, (_, i) => i + 1).map((page) => (
                       <button
                         key={page}
                         onClick={() => handlePageChange(page)}
-                        className={`px-4 py-2 rounded-lg ${
+                        className={`px-4 py-2 rounded-lg font-label text-sm transition-colors ${
                           page === pagination.page
-                            ? "bg-blue-500 text-white"
-                            : darkMode
-                            ? "bg-gray-700 text-white"
-                            : "bg-white text-gray-700"
-                        } hover:bg-blue-500 hover:text-white transition-colors`}
+                            ? "btn-gradient text-white"
+                            : "bg-[#f5f3f4] text-[#041627] hover:bg-[#e4e2e3]"
+                        }`}
                       >
                         {page}
                       </button>
@@ -314,11 +292,9 @@ const SearchPage = ({ darkMode }) => {
                     <button
                       onClick={() => handlePageChange(pagination.page + 1)}
                       disabled={pagination.page === pagination.pages}
-                      className={`p-2 rounded-lg ${
-                        darkMode ? "bg-gray-700 text-white" : "bg-white text-gray-700"
-                      } disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-500 hover:text-white transition-colors`}
+                      className="p-2 rounded-lg bg-[#f5f3f4] text-[#041627] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#e4e2e3] transition-colors"
                     >
-                      <FiChevronRight />
+                      <span className="material-symbols-outlined">chevron_right</span>
                     </button>
                   </div>
                 )}

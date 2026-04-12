@@ -38,27 +38,27 @@ const App = () => {
 
   return (
     <Router>
-      <div className={`app-container ${darkMode ? "dark" : ""}`}>
+      <div className={`app-container ${darkMode ? "dark" : ""} w-full overflow-x-hidden`}>
         <Header darkMode={darkMode} setDarkMode={setDarkMode} cartCount={cartCount} />
-        <main className="main-content">
+        <main className="main-content pt-20 pb-12 w-full">
           <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/product/:productId" element={<ProductDetails />} />
+            <Route path="/" element={<Home darkMode={darkMode} />} />
+            <Route path="/cart" element={<Cart darkMode={darkMode} />} />
+            <Route path="/product/:productId" element={<ProductDetails darkMode={darkMode} />} />
             <Route path="/profile" element={<Profile darkMode={darkMode} />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/orders" element={<Order />} />
+            <Route path="/login" element={<Login darkMode={darkMode} />} />
+            <Route path="/register" element={<Register darkMode={darkMode} />} />
+            <Route path="/orders" element={<Order darkMode={darkMode} />} />
             <Route path="/orders/:orderId" element={<Order darkMode={darkMode} />} />
-            <Route path="/favourite" element={<Favourite />} />
-            <Route path="/shop" element={<ShopPage />} />
-            <Route path="/shop/:categoryName" element={<ShopPage />} />
+            <Route path="/favourite" element={<Favourite darkMode={darkMode} />} />
+            <Route path="/shop" element={<ShopPage darkMode={darkMode} />} />
+            <Route path="/shop/:categoryName" element={<ShopPage darkMode={darkMode} />} />
             <Route path="/search" element={<SearchPage darkMode={darkMode} />} />
             <Route path="/checkout" element={<CheckoutPage darkMode={darkMode} />} />
             <Route path="/add-product" element={<AddProductPage darkMode={darkMode} />} />
           </Routes>
         </main>
-        <Footer />
+        <Footer darkMode={darkMode} />
       </div>
     </Router>
   );

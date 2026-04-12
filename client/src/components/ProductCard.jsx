@@ -9,7 +9,6 @@ import { getUserFromCookie } from "../utils/cookie.js";
 import toast from "react-hot-toast";
 
 const ProductCard = ({ product, initialIsFavorite = false, darkMode = false }) => {
-  // Added initialIsFavorite prop
   const [isFavorite, setIsFavorite] = useState(initialIsFavorite);
   const [addingToCart, setAddingToCart] = useState(false);
   const [togglingFavorite, setTogglingFavorite] = useState(false);
@@ -18,27 +17,23 @@ const ProductCard = ({ product, initialIsFavorite = false, darkMode = false }) =
   const userInfo = token;
 
   if (!product) return null;
-  // Add to cart click handler
+
   const handleAddToCart = async (e) => {
     e.preventDefault();
     e.stopPropagation();
 
-    // Check if the user is logged in
     if (!userInfo) {
       toast.error("Please log in to add items to your cart.");
       navigate("/login");
       return;
     }
 
-    // Prevent duplicate clicks
     if (addingToCart) return;
 
     setAddingToCart(true);
     try {
       console.log(token);
-      // Call API to add item to cart
       const { data } = await AddItemToCart(token, product._id);
-      // Success message
       toast.success(`${product.name} added to cart!`);
     } catch (error) {
       console.error("Add to cart error:", error);
@@ -67,14 +62,11 @@ const ProductCard = ({ product, initialIsFavorite = false, darkMode = false }) =
       let response;
 
       if (targetIsFavorite) {
-        // Add to favourites
         response = await AddItemToFavourites(token, product._id);
       } else {
-        // Remove from favourites
         response = await RemoveItemFromFavourites(token, product._id);
       }
 
-      // Axios responses have status + data
       if (response.status !== 200) {
         throw new Error(response.data?.message || "Failed to update favorites");
       }
@@ -97,79 +89,71 @@ const ProductCard = ({ product, initialIsFavorite = false, darkMode = false }) =
   };
 
   return (
-    <div className={`group rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl transform hover:-translate-y-1 flex flex-col h-full ${darkMode ? "bg-gray-800" : "bg-white"}`} key={product._id}>
-      <div className="relative">
-        <Link to={`/product/${product._id}`} className="block">
-          <div className="aspect-square w-full overflow-hidden">
-            <img
-              src={
-                product.image || "https://via.placeholder.com/300?text=No+Image"
-              }
-              alt={product.name}
-              className="w-full h-full object-cover object-center group-hover:opacity-75 transition-opacity duration-300"
-            />
-          </div>
-        </Link>
-
-        <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <button
-            onClick={handleToggleFavorite}
-            disabled={togglingFavorite}
-            className="bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            aria-label={
-              isFavorite ? "Remove from favorites" : "Add to favorites"
+    <div className={`group relative flex flex-col h-full ${darkMode ? "bg-[#1a2b3c]" : "bg-[#ffffff]"}`} key={product._id}>
+      <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-[#f5f3f4] shrink-0">
+        <Link to={`/product/${product._id}`} className="block w-full h-full">
+          <img
+            src={
+              product.image || "https://via.placeholder.com/300?text=No+Image"
             }
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className={`h-5 w-5 transition-colors duration-200 ${isFavorite
-                ? "text-red-500 fill-current"
-                : "text-gray-500 hover:text-red-400"
-                }`}
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </button>
+            alt={product.name}
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+          />
+        </Link>
+        
+        <button
+          onClick={handleToggleFavorite}
+          disabled={togglingFavorite}
+          className={`absolute top-4 right-4 w-10 h-10 bg-surface/90 backdrop-blur-sm rounded-full flex items-center justify-center transition-colors duration-300 ${
+            darkMode ? "hover:bg-[#1a2b3c]" : "hover:bg-[#f5f3f4]"
+          } disabled:opacity-50 disabled:cursor-not-allowed`}
+          aria-label={
+            isFavorite ? "Remove from favorites" : "Add to favorites"
+          }
+        >
+          <span className={`material-symbols-outlined text-lg transition-colors duration-200 ${
+            isFavorite
+              ? "text-[#2e0800]"
+              : darkMode ? "text-[#fbf9fa]/60 hover:text-[#fbf9fa]" : "text-[#041627]/60 hover:text-[#041627]"
+          }`}>
+            {isFavorite ? "favorite" : "favorite"}
+          </span>
+        </button>
 
-          <button
-            onClick={handleAddToCart}
-            disabled={addingToCart || product.countInStock === 0}
-            className="bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            aria-label="Add to cart"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 text-gray-500 hover:text-blue-500 transition-colors duration-200"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-              />
-            </svg>
-          </button>
-        </div>
+        {product.countInStock === 0 && (
+          <div className="absolute inset-0 bg-[#041627]/20 backdrop-grayscale flex items-center justify-center">
+            <span className="bg-surface/95 px-4 py-2 text-[10px] tracking-[0.3em] font-label uppercase text-primary">
+              Out of Stock
+            </span>
+          </div>
+        )}
       </div>
 
-      <div className="p-4 flex-grow flex flex-col">
-        <Link to={`/product/${product._id}`}>
-          <h3 className="text-sm text-gray-700 truncate group-hover:text-blue-600 transition-colors duration-300 h-10 mb-1 flex items-center">
+      <div className="mt-auto pt-4 flex flex-col gap-2">
+        <Link to={`/product/${product._id}`} className="block">
+          <h3 className="font-headline font-bold text-base tracking-tight text-[#041627] dark:text-[#fbf9fa] line-clamp-2">
             {product.name}
           </h3>
-          <p className="mt-1 text-lg font-medium text-gray-900">
-            ${product.price?.toFixed(2)}
-          </p>
+          <div className="flex justify-between items-center mt-2">
+            <p className="text-xs text-[#44474c] font-label">
+              {product.category}
+            </p>
+            <span className="font-label text-sm text-[#44474c]">
+              ${product.price?.toFixed(2)}
+            </span>
+          </div>
         </Link>
+        <button
+          onClick={handleAddToCart}
+          disabled={addingToCart || product.countInStock === 0}
+          className={`w-full py-2.5 rounded-lg text-white font-label text-xs tracking-widest uppercase transition-opacity font-medium ${
+            product.countInStock === 0
+              ? (darkMode ? "bg-[#e4e2e3] text-[#44474c] cursor-not-allowed" : "bg-[#e4e2e3] text-[#44474c] cursor-not-allowed")
+              : "btn-gradient hover:opacity-90"
+          } disabled:opacity-50 disabled:cursor-not-allowed`}
+        >
+          {product.countInStock === 0 ? "Notify Me" : "Add to Cart"}
+        </button>
       </div>
     </div>
   );
