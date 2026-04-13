@@ -85,7 +85,7 @@ const Header = ({ cartCount, darkMode, setDarkMode }) => {
           <Link to="/" className="flex items-center gap-8 flex-shrink-0">
             <span className={`text-2xl font-black tracking-tighter font-headline ${darkMode ? "text-[#fbf9fa]" : "text-[#041627]"
               }`}>
-              ATELIER
+              ShopEase
             </span>
             <div className="hidden md:flex gap-6 font-headline tracking-tight text-sm uppercase">
               {categories.slice(0, 3).map((cat) => (
