@@ -3,6 +3,19 @@ const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "http://localhost:4040/api",
 });
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response) {
+      const message = error.response.data?.message;
+      if (message) {
+        error.message = message;
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Helper for multipart form data
 const createFormData = (data) => {
   const formData = new FormData();
