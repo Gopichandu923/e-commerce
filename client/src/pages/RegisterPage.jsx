@@ -90,10 +90,10 @@ const Register = ({ darkMode = false }) => {
           isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
         }`}>
           <h2 className="text-4xl md:text-5xl font-headline font-extrabold text-white tracking-tighter text-center mb-4">
-            THE ATELIER
+            ShopEase
           </h2>
           <p className="text-white/80 font-body text-base text-center max-w-sm leading-relaxed">
-            Join our exclusive community of collectors. Begin your journey to refined living.
+            Join us and start shopping for everything you need!
           </p>
           <div className="mt-8 flex gap-2">
             <div className="w-6 h-1 bg-white/30 rounded-full"></div>
@@ -329,7 +329,7 @@ const Register = ({ darkMode = false }) => {
               <div className="absolute inset-0 bg-gradient-to-t from-primary/60 to-transparent"></div>
             </div>
             <div className="absolute bottom-3 left-4">
-              <p className="text-white font-headline font-bold text-sm">THE ATELIER</p>
+              <p className="text-white font-headline font-bold text-sm">ShopEase</p>
             </div>
           </div>
         </div>
