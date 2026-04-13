@@ -10,7 +10,7 @@ import AddProductPage from "./AddProductPage.jsx";
 // eslint-disable-next-line no-unused-vars
 let mapplsGlobal;
 
-const ProfilePage = ({ darkMode = false }) => {
+const ProfilePage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { user: reduxUser } = useSelector((state) => state.auth);
@@ -447,24 +447,24 @@ const ProfilePage = ({ darkMode = false }) => {
       case "profile":
         return (
           <div className="space-y-6">
-            <div className={`p-6 rounded-lg shadow-md ${darkMode ? "bg-gray-800" : "bg-white"}`}>
-              <h3 className={`text-xl font-semibold mb-4 ${darkMode ? "text-white" : "text-gray-800"}`}>Personal Information</h3>
+            <div className="p-6 rounded-lg shadow-md bg-surface-container-high">
+              <h3 className="text-xl font-headline font-bold text-on-surface mb-4">Personal Information</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className={`block text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>Name</label>
-                  <p className={`font-medium ${darkMode ? "text-white" : "text-gray-900"}`}>{currentUser.name || "N/A"}</p>
+                  <label className="block text-sm text-on-surface-variant">Name</label>
+                  <p className="font-body text-on-surface">{currentUser.name || "N/A"}</p>
                 </div>
                 <div>
-                  <label className={`block text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>Email</label>
-                  <p className={`font-medium ${darkMode ? "text-white" : "text-gray-900"}`}>{currentUser.email || "N/A"}</p>
+                  <label className="block text-sm text-on-surface-variant">Email</label>
+                  <p className="font-body text-on-surface">{currentUser.email || "N/A"}</p>
                 </div>
                 <div>
-                  <label className={`block text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>Phone</label>
-                  <p className={`font-medium ${darkMode ? "text-white" : "text-gray-900"}`}>{currentUser.phone || "N/A"}</p>
+                  <label className="block text-sm text-on-surface-variant">Phone</label>
+                  <p className="font-body text-on-surface">{currentUser.phone || "N/A"}</p>
                 </div>
                 <div>
-                  <label className={`block text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>Account Type</label>
-                  <p className={`font-medium ${darkMode ? "text-white" : "text-gray-900"}`}>
+                  <label className="block text-sm text-on-surface-variant">Account Type</label>
+                  <p className="font-body text-on-surface">
                     {currentUser.isAdmin ? "Admin" : "Customer"}
                   </p>
                 </div>
@@ -475,10 +475,7 @@ const ProfilePage = ({ darkMode = false }) => {
                 dispatch(logout());
                 navigate("/login");
               }}
-              className={`w-full py-3 rounded-lg font-medium transition-colors ${darkMode
-                  ? "bg-red-600 text-white hover:bg-red-700"
-                  : "bg-red-500 text-white hover:bg-red-600"
-                }`}
+              className="w-full py-3 rounded-lg font-label text-sm tracking-[0.2em] uppercase text-on-error-container bg-error-container hover:bg-error/10 transition-colors"
             >
               Logout
             </button>
@@ -490,30 +487,36 @@ const ProfilePage = ({ darkMode = false }) => {
           <div className="space-y-4">
             {loading ? (
               <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mx-auto"></div>
+                <div className="inline-flex justify-center items-center gap-1">
+                  <span className="dot-bounce bg-primary"></span>
+                  <span className="dot-bounce delay-150 bg-primary"></span>
+                  <span className="dot-bounce delay-300 bg-primary"></span>
+                </div>
               </div>
             ) : orders.length === 0 ? (
-              <div className={`p-8 rounded-lg shadow-md text-center ${darkMode ? "bg-gray-800" : "bg-white"}`}>
-                <p className={`mb-4 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>No orders yet</p>
-                <Link to="/shop" className="text-blue-500 hover:underline">Start Shopping</Link>
+              <div className="p-8 rounded-lg shadow-md text-center bg-surface-container-high">
+                <p className="mb-4 text-on-surface-variant">No orders yet</p>
+                <Link to="/shop" className="text-secondary hover:underline">Start Shopping</Link>
               </div>
             ) : (
               orders.map((order) => (
-                <div key={order._id} className={`p-6 rounded-lg shadow-md ${darkMode ? "bg-gray-800" : "bg-white"}`}>
+                <div key={order._id} className="p-6 rounded-lg shadow-md bg-surface-container-high">
                   <div className="flex justify-between items-start mb-4">
                     <div>
-                      <p className={`font-semibold ${darkMode ? "text-white" : "text-gray-900"}`}>Order #{order._id?.slice(-8)}</p>
-                      <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+                      <p className="font-body font-bold text-on-surface">Order #{order._id?.slice(-8)}</p>
+                      <p className="text-sm text-on-surface-variant">
                         {new Date(order.createdAt).toLocaleDateString()}
                       </p>
                     </div>
-                    <span className={`px-3 py-1 rounded-full text-sm ${order.isPaid ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}`}>
+                    <span className={`px-3 py-1 rounded-full text-sm font-label ${order.isPaid ? "bg-secondary-container text-on-secondary-container" : "bg-error-container text-on-error-container"}`}>
                       {order.isPaid ? "Paid" : "Pending"}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <p className={`font-medium ${darkMode ? "text-white" : "text-gray-900"}`}>Total: ${order.totalPrice?.toFixed(2)}</p>
-                    <Link to={`/orders/${order._id}`} className="text-blue-500 hover:underline text-sm">View Details</Link>
+                    <p className="font-body font-bold text-on-surface">Total: ₹{order.totalPrice?.toFixed(2)}</p>
+                    <Link to={`/orders/${order._id}`} className="px-4 py-2 rounded-md font-label text-sm text-on-primary bg-primary hover:bg-primary/90 transition-colors">
+                      View Details
+                    </Link>
                   </div>
                 </div>
               ))
@@ -525,43 +528,47 @@ const ProfilePage = ({ darkMode = false }) => {
         return (
           <div className="space-y-4">
             <div className="flex justify-between items-center mb-4">
-              <h3 className={`text-xl font-semibold ${darkMode ? "text-white" : "text-gray-800"}`}>My Addresses</h3>
-              <button onClick={handleOpenAddModal} className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
+              <h3 className="text-xl font-headline font-bold text-on-surface">My Addresses</h3>
+              <button onClick={handleOpenAddModal} className="px-4 py-2 rounded-md font-label text-sm text-on-primary bg-primary hover:bg-primary/90 transition-colors">
                 Add New Address
               </button>
             </div>
             {loading ? (
               <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mx-auto"></div>
+                <div className="inline-flex justify-center items-center gap-1">
+                  <span className="dot-bounce bg-primary"></span>
+                  <span className="dot-bounce delay-150 bg-primary"></span>
+                  <span className="dot-bounce delay-300 bg-primary"></span>
+                </div>
               </div>
             ) : addresses.length === 0 ? (
-              <div className={`p-8 rounded-lg shadow-md text-center ${darkMode ? "bg-gray-800" : "bg-white"}`}>
-                <p className={`mb-4 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>No addresses saved</p>
-                <button onClick={handleOpenAddModal} className="text-blue-500 hover:underline">Add your first address</button>
+              <div className="p-8 rounded-lg shadow-md text-center bg-surface-container-high">
+                <p className="mb-4 text-on-surface-variant">No addresses saved</p>
+                <button onClick={handleOpenAddModal} className="text-secondary hover:underline">Add your first address</button>
               </div>
             ) : (
               <div className="grid gap-4 md:grid-cols-2">
                 {addresses.map((address) => (
-                  <div key={address._id} className={`p-6 rounded-lg shadow-md relative ${darkMode ? "bg-gray-800" : "bg-white"}`}>
+                  <div key={address._id} className="p-6 rounded-lg shadow-md relative bg-surface-container-high">
                     {address.isMain && (
-                      <span className="absolute top-4 right-4 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">Default</span>
+                      <span className="absolute top-4 right-4 bg-secondary-container text-on-secondary-container text-xs px-2 py-1 rounded font-label">Default</span>
                     )}
                     {address.label && (
-                      <span className={`inline-block text-xs px-2 py-1 rounded mb-2 ${darkMode ? "bg-gray-700 text-gray-300" : "bg-gray-100 text-gray-600"}`}>
+                      <span className="inline-block text-xs px-2 py-1 rounded mb-2 bg-surface-container-highest text-on-surface-variant">
                         {address.label}
                       </span>
                     )}
-                    <p className={`font-medium ${darkMode ? "text-white" : "text-gray-900"}`}>{address.fullName}</p>
-                    <p className={darkMode ? "text-gray-300" : "text-gray-600"}>{address.street}</p>
-                    <p className={darkMode ? "text-gray-300" : "text-gray-600"}>{address.city}, {address.state} {address.zipCode}</p>
-                    <p className={darkMode ? "text-gray-300" : "text-gray-600"}>{address.country}</p>
-                    {address.phone && <p className={`mt-2 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>📞 {address.phone}</p>}
+                    <p className="font-body font-bold text-on-surface">{address.fullName}</p>
+                    <p className="font-body text-on-surface-variant">{address.street}</p>
+                    <p className="font-body text-on-surface-variant">{address.city}, {address.state} {address.zipCode}</p>
+                    <p className="font-body text-on-surface-variant">{address.country}</p>
+                    {address.phone && <p className="mt-2 text-sm text-on-surface-variant">📞 {address.phone}</p>}
                     <div className="flex flex-wrap gap-2 mt-4">
-                      <button onClick={() => handleOpenEditModal(address)} className="text-blue-500 hover:underline text-sm">Edit</button>
+                      <button onClick={() => handleOpenEditModal(address)} className="text-secondary hover:underline text-sm font-label">Edit</button>
                       {!address.isMain && (
-                        <button onClick={() => handleSetMainAddress(address._id)} className="text-green-500 hover:underline text-sm">Set as Default</button>
+                        <button onClick={() => handleSetMainAddress(address._id)} className="text-tertiary hover:underline text-sm font-label">Set as Default</button>
                       )}
-                      <button onClick={() => handleDeleteAddress(address._id)} className="text-red-500 hover:underline text-sm">Delete</button>
+                      <button onClick={() => handleDeleteAddress(address._id)} className="text-error hover:underline text-sm font-label">Delete</button>
                     </div>
                   </div>
                 ))}
@@ -573,28 +580,32 @@ const ProfilePage = ({ darkMode = false }) => {
       case "myProducts":
         return (
           <div className="space-y-4">
-            <h3 className={`text-xl font-semibold ${darkMode ? "text-white" : "text-gray-800"}`}>My Products</h3>
+            <h3 className="text-xl font-headline font-bold text-on-surface">My Products</h3>
             {productsLoading ? (
               <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mx-auto"></div>
+                <div className="inline-flex justify-center items-center gap-1">
+                  <span className="dot-bounce bg-primary"></span>
+                  <span className="dot-bounce delay-150 bg-primary"></span>
+                  <span className="dot-bounce delay-300 bg-primary"></span>
+                </div>
               </div>
             ) : myProducts.length === 0 ? (
-              <div className={`p-8 rounded-lg shadow-md text-center ${darkMode ? "bg-gray-800" : "bg-white"}`}>
-                <p className={`mb-4 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>You haven't added any products yet</p>
-                <button onClick={() => setActiveTab("addProduct")} className="text-blue-500 hover:underline">Add your first product</button>
+              <div className="p-8 rounded-lg shadow-md text-center bg-surface-container-high">
+                <p className="mb-4 text-on-surface-variant">You haven't added any products yet</p>
+                <button onClick={() => setActiveTab("addProduct")} className="text-secondary hover:underline">Add your first product</button>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {myProducts.map((product) => (
-                  <div key={product._id} className={`p-4 rounded-lg shadow-md ${darkMode ? "bg-gray-800" : "bg-white"}`}>
+                  <div key={product._id} className="p-4 rounded-lg shadow-md bg-surface-container-high">
                     <img src={product.image} alt={product.name} className="w-full h-40 object-cover rounded-lg mb-3" />
-                    <h4 className={`font-semibold ${darkMode ? "text-white" : "text-gray-900"}`}>{product.name}</h4>
-                    <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>{product.brand}</p>
-                    <p className={`text-lg font-bold text-green-600`}>₹{product.price}</p>
-                    <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>Stock: {product.countInStock}</p>
+                    <h4 className="font-body font-bold text-on-surface">{product.name}</h4>
+                    <p className="text-sm text-on-surface-variant">{product.brand}</p>
+                    <p className="text-lg font-bold text-primary">₹{product.price}</p>
+                    <p className="text-sm text-on-surface-variant">Stock: {product.countInStock}</p>
                     <div className="flex gap-2 mt-3">
-                      <button onClick={() => handleOpenEditProduct(product)} className="flex-1 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm">Edit</button>
-                      <button onClick={() => handleDeleteMyProduct(product._id)} className="flex-1 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 text-sm">Delete</button>
+                      <button onClick={() => handleOpenEditProduct(product)} className="flex-1 py-2 rounded-md font-label text-sm text-on-primary bg-primary hover:bg-primary/90 transition-colors">Edit</button>
+                      <button onClick={() => handleDeleteMyProduct(product._id)} className="flex-1 py-2 rounded-md font-label text-sm text-on-error-container bg-error-container hover:bg-error/10 transition-colors">Delete</button>
                     </div>
                   </div>
                 ))}
@@ -604,7 +615,7 @@ const ProfilePage = ({ darkMode = false }) => {
         );
 
       case "addProduct":
-        return <AddProductPage darkMode={darkMode} />;
+        return <AddProductPage />;
 
       default:
         return null;
@@ -612,27 +623,30 @@ const ProfilePage = ({ darkMode = false }) => {
   };
 
   return (
-    <div className={`min-h-screen ${darkMode ? "bg-gray-900" : "bg-gray-50"}`}>
+    <div className="min-h-[100dvh] bg-surface-container-lowest">
       <div className="max-w-6xl mx-auto p-4 sm:p-6">
-        <h1 className={`text-2xl md:text-3xl font-bold mb-6 ${darkMode ? "text-white" : "text-gray-800"}`}>My Account</h1>
+        <h1 className="text-2xl md:text-3xl font-headline font-extrabold tracking-tighter text-primary mb-6">My Account</h1>
 
         <div className="flex flex-col md:flex-row gap-6">
           <div className="md:w-64 flex-shrink-0">
-            <div className={`rounded-lg shadow-md overflow-hidden ${darkMode ? "bg-gray-800" : "bg-white"}`}>
-              <div className={`p-6 text-center border-b ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
-                <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-3 ${darkMode ? "bg-gray-700" : "bg-blue-100"}`}>
-                  <span className="text-2xl">{currentUser.name?.charAt(0).toUpperCase() || "U"}</span>
+            <div className="rounded-lg shadow-md overflow-hidden bg-surface-container-high">
+              <div className="p-6 text-center border-b border-outline-variant">
+                <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-3 bg-secondary-container">
+                  <span className="text-2xl text-on-secondary-container">{currentUser.name?.charAt(0).toUpperCase() || "U"}</span>
                 </div>
-                <h2 className={`font-semibold ${darkMode ? "text-white" : "text-gray-900"}`}>{currentUser.name}</h2>
-                <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>{currentUser.email}</p>
+                <h2 className="font-headline font-bold text-on-surface">{currentUser.name}</h2>
+                <p className="text-sm text-on-surface-variant">{currentUser.email}</p>
               </div>
               <div className="p-2">
                 {tabs.map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`w-full text-left px-4 py-3 rounded-md flex items-center gap-3 transition-colors ${activeTab === tab.id ? "bg-blue-50 text-blue-600" : darkMode ? "text-gray-300 hover:bg-gray-700" : "text-gray-600 hover:bg-gray-50"
-                      }`}
+                    className={`w-full text-left px-4 py-3 rounded-md flex items-center gap-3 transition-colors font-label text-sm ${
+                      activeTab === tab.id 
+                        ? "bg-secondary-container text-on-secondary-container" 
+                        : "text-on-surface-variant hover:bg-surface-container-high"
+                    }`}
                   >
                     <span>{tab.icon}</span>
                     <span>{tab.label}</span>
@@ -647,59 +661,59 @@ const ProfilePage = ({ darkMode = false }) => {
       </div>
 
       {showAddressModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className={`rounded-lg max-w-lg w-full max-h-[90vh] overflow-y-auto ${darkMode ? "bg-gray-800" : "bg-white"}`}>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="rounded-lg max-w-lg w-full max-h-[90vh] overflow-y-auto bg-surface-container-high">
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
-                <h2 className={`text-xl font-bold ${darkMode ? "text-white" : "text-gray-800"}`}>
+                <h2 className="text-xl font-headline font-bold text-on-surface">
                   {editingAddress ? "Edit Address" : "Add New Address"}
                 </h2>
-                <button onClick={handleCloseModal} className={darkMode ? "text-gray-400 hover:text-gray-200" : "text-gray-500 hover:text-gray-700"}>✕</button>
+                <button onClick={handleCloseModal} className="text-on-surface-variant hover:text-on-surface">✕</button>
               </div>
               <form onSubmit={handleSaveAddress} className="space-y-4">
                 <div>
-                  <label className={`block text-sm font-medium ${darkMode ? "text-gray-300" : "text-gray-700"} mb-1`}>Full Name *</label>
+                  <label className="block text-sm font-label text-on-surface-variant mb-1">Full Name *</label>
                   <input type="text" name="fullName" value={addressForm.fullName} onChange={handleAddressFormChange}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${darkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"}`}
+                    className="w-full px-3 py-2 rounded-md bg-surface-container-highest text-on-surface outline outline-1 outline-primary/15 focus:outline-none"
                     placeholder="John Doe" />
                 </div>
                 <div>
-                  <label className={`block text-sm font-medium ${darkMode ? "text-gray-300" : "text-gray-700"} mb-1`}>Street Address *</label>
+                  <label className="block text-sm font-label text-on-surface-variant mb-1">Street Address *</label>
                   <div className="flex gap-2">
                     <input type="text" name="street" value={addressForm.street} onChange={handleAddressFormChange}
-                      className={`flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${darkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"}`}
+                      className="flex-1 px-3 py-2 rounded-md bg-surface-container-highest text-on-surface outline outline-1 outline-primary/15 focus:outline-none"
                       placeholder="123 Main Street, Apt 4" />
                     <button type="button" onClick={openMapModal}
-                      className="px-3 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm whitespace-nowrap">
+                      className="px-3 py-2 rounded-md font-label text-sm text-on-primary bg-primary hover:bg-primary/90 whitespace-nowrap">
                       📍 Pick from Map
                     </button>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className={`block text-sm font-medium ${darkMode ? "text-gray-300" : "text-gray-700"} mb-1`}>City *</label>
+                    <label className="block text-sm font-label text-on-surface-variant mb-1">City *</label>
                     <input type="text" name="city" value={addressForm.city} onChange={handleAddressFormChange}
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${darkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"}`}
+                      className="w-full px-3 py-2 rounded-md bg-surface-container-highest text-on-surface outline outline-1 outline-primary/15 focus:outline-none"
                       placeholder="New York" />
                   </div>
                   <div>
-                    <label className={`block text-sm font-medium ${darkMode ? "text-gray-300" : "text-gray-700"} mb-1`}>State *</label>
+                    <label className="block text-sm font-label text-on-surface-variant mb-1">State *</label>
                     <input type="text" name="state" value={addressForm.state} onChange={handleAddressFormChange}
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${darkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"}`}
+                      className="w-full px-3 py-2 rounded-md bg-surface-container-highest text-on-surface outline outline-1 outline-primary/15 focus:outline-none"
                       placeholder="NY" />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className={`block text-sm font-medium ${darkMode ? "text-gray-300" : "text-gray-700"} mb-1`}>PIN Code *</label>
+                    <label className="block text-sm font-label text-on-surface-variant mb-1">PIN Code *</label>
                     <input type="text" name="zipCode" value={addressForm.zipCode} onChange={handleAddressFormChange}
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${darkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"}`}
+                      className="w-full px-3 py-2 rounded-md bg-surface-container-highest text-on-surface outline outline-1 outline-primary/15 focus:outline-none"
                       placeholder="500001" />
                   </div>
                   <div>
-                    <label className={`block text-sm font-medium ${darkMode ? "text-gray-300" : "text-gray-700"} mb-1`}>Country</label>
+                    <label className="block text-sm font-label text-on-surface-variant mb-1">Country</label>
                     <select name="country" value={addressForm.country} onChange={handleAddressFormChange}
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${darkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"}`}>
+                      className="w-full px-3 py-2 rounded-md bg-surface-container-highest text-on-surface outline outline-1 outline-primary/15 focus:outline-none">
                       {countries.map((c) => (
                         <option key={c} value={c}>{c}</option>
                       ))}
@@ -707,15 +721,15 @@ const ProfilePage = ({ darkMode = false }) => {
                   </div>
                 </div>
                 <div>
-                  <label className={`block text-sm font-medium ${darkMode ? "text-gray-300" : "text-gray-700"} mb-1`}>Phone</label>
+                  <label className="block text-sm font-label text-on-surface-variant mb-1">Phone</label>
                   <input type="text" name="phone" value={addressForm.phone} onChange={handleAddressFormChange}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${darkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"}`}
+                    className="w-full px-3 py-2 rounded-md bg-surface-container-highest text-on-surface outline outline-1 outline-primary/15 focus:outline-none"
                     placeholder="(555) 123-4567" />
                 </div>
                 <div>
-                  <label className={`block text-sm font-medium ${darkMode ? "text-gray-300" : "text-gray-700"} mb-1`}>Label</label>
+                  <label className="block text-sm font-label text-on-surface-variant mb-1">Label</label>
                   <select name="label" value={addressForm.label} onChange={handleAddressFormChange}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${darkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"}`}>
+                    className="w-full px-3 py-2 rounded-md bg-surface-container-highest text-on-surface outline outline-1 outline-primary/15 focus:outline-none">
                     <option value="">None</option>
                     <option value="Home">Home</option>
                     <option value="Work">Work</option>
@@ -723,16 +737,16 @@ const ProfilePage = ({ darkMode = false }) => {
                   </select>
                 </div>
                 <div className="flex items-center gap-2">
-                  <input type="checkbox" name="isMain" id="isMain" checked={addressForm.isMain} onChange={handleAddressFormChange} className="rounded" />
-                  <label htmlFor="isMain" className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-700"}`}>Set as default address</label>
+                  <input type="checkbox" name="isMain" id="isMain" checked={addressForm.isMain} onChange={handleAddressFormChange} className="rounded accent-secondary" />
+                  <label htmlFor="isMain" className="text-sm font-label text-on-surface-variant">Set as default address</label>
                 </div>
                 <div className="flex gap-3 pt-4">
                   <button type="submit" disabled={savingAddress}
-                    className="flex-1 bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 disabled:bg-blue-300">
+                    className="flex-1 bg-primary text-on-primary py-2 px-4 rounded-md hover:bg-primary/90 disabled:opacity-50 font-label text-sm">
                     {savingAddress ? "Saving..." : editingAddress ? "Update Address" : "Add Address"}
                   </button>
                   <button type="button" onClick={handleCloseModal}
-                    className={`flex-1 py-2 px-4 rounded-md ${darkMode ? "bg-gray-700 text-gray-300 hover:bg-gray-600" : "bg-gray-300 text-gray-700 hover:bg-gray-400"}`}>
+                    className="flex-1 py-2 px-4 rounded-md font-label text-sm bg-surface-container-highest text-on-surface-variant hover:bg-surface-container-lowest">
                     Cancel
                   </button>
                 </div>
@@ -743,21 +757,21 @@ const ProfilePage = ({ darkMode = false }) => {
       )}
 
       {showMapModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className={`rounded-lg max-w-2xl w-full max-h-[90vh] overflow-hidden ${darkMode ? "bg-gray-800" : "bg-white"}`}>
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-              <h2 className={`text-lg font-bold ${darkMode ? "text-white" : "text-gray-800"}`}>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="rounded-lg max-w-2xl w-full max-h-[90vh] overflow-hidden bg-surface-container-high">
+            <div className="p-4 border-b border-outline-variant flex justify-between items-center">
+              <h2 className="text-lg font-headline font-bold text-on-surface">
                 Select Location from Map
               </h2>
-              <button onClick={() => setShowMapModal(false)} className={darkMode ? "text-gray-400 hover:text-gray-200" : "text-gray-500 hover:text-gray-700"}>✕</button>
+              <button onClick={() => setShowMapModal(false)} className="text-on-surface-variant hover:text-on-surface">✕</button>
             </div>
             <div className="p-4">
               <div className="flex justify-between items-center mb-4">
                 <button type="button" onClick={handleGetCurrentLocation} disabled={mapLoading}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:bg-gray-400 flex items-center gap-2">
+                  className="px-4 py-2 rounded-md font-label text-sm text-on-primary bg-primary hover:bg-primary/90 disabled:opacity-50 flex items-center gap-2">
                   {mapLoading ? "Getting..." : "📍 Use Current Location"}
                 </button>
-                <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+                <p className="text-sm text-on-surface-variant">
                   Click on map to select location
                 </p>
               </div>
@@ -768,7 +782,7 @@ const ProfilePage = ({ darkMode = false }) => {
                     setShowMapModal(false);
                     toast.success("Location selected!");
                   }}
-                    className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600">
+                    className="px-4 py-2 rounded-md font-label text-sm text-on-primary bg-primary hover:bg-primary/90">
                     Confirm Location
                   </button>
                 </div>
@@ -779,65 +793,65 @@ const ProfilePage = ({ darkMode = false }) => {
       )}
 
       {showProductModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className={`rounded-lg max-w-lg w-full max-h-[90vh] overflow-y-auto ${darkMode ? "bg-gray-800" : "bg-white"}`}>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="rounded-lg max-w-lg w-full max-h-[90vh] overflow-y-auto bg-surface-container-high">
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
-                <h2 className={`text-xl font-bold ${darkMode ? "text-white" : "text-gray-800"}`}>
+                <h2 className="text-xl font-headline font-bold text-on-surface">
                   {editingProduct ? "Edit Product" : "Add Product"}
                 </h2>
-                <button onClick={() => { setShowProductModal(false); resetProductForm(); }} className={darkMode ? "text-gray-400 hover:text-gray-200" : "text-gray-500 hover:text-gray-700"}>✕</button>
+                <button onClick={() => { setShowProductModal(false); resetProductForm(); }} className="text-on-surface-variant hover:text-on-surface">✕</button>
               </div>
               <form onSubmit={handleSaveProduct} className="space-y-4">
                 <div>
-                  <label className={`block text-sm font-medium ${darkMode ? "text-gray-300" : "text-gray-700"} mb-1`}>Product Image</label>
+                  <label className="block text-sm font-label text-on-surface-variant mb-1">Product Image</label>
                   <div className="flex items-center gap-4">
                     {productImagePreview && <img src={productImagePreview} alt="Preview" className="w-20 h-20 object-cover rounded-lg" />}
-                    <input type="file" accept="image/*" onChange={handleProductImageSelect} className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-700"}`} />
-                    {uploadingProductImage && <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>}
+                    <input type="file" accept="image/*" onChange={handleProductImageSelect} className="text-sm text-on-surface-variant" />
+                    {uploadingProductImage && <div className="inline-flex justify-center items-center gap-1"><span className="dot-bounce bg-primary"></span><span className="dot-bounce delay-150 bg-primary"></span><span className="dot-bounce delay-300 bg-primary"></span></div>}
                   </div>
                 </div>
                 <div>
-                  <label className={`block text-sm font-medium ${darkMode ? "text-gray-300" : "text-gray-700"} mb-1`}>Product Name *</label>
+                  <label className="block text-sm font-label text-on-surface-variant mb-1">Product Name *</label>
                   <input type="text" value={productForm.name} onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
-                    className={`w-full px-3 py-2 border rounded-md ${darkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"}`} placeholder="Product name" />
+                    className="w-full px-3 py-2 rounded-md bg-surface-container-highest text-on-surface outline outline-1 outline-primary/15 focus:outline-none" placeholder="Product name" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className={`block text-sm font-medium ${darkMode ? "text-gray-300" : "text-gray-700"} mb-1`}>Price (₹) *</label>
+                    <label className="block text-sm font-label text-on-surface-variant mb-1">Price (₹) *</label>
                     <input type="number" value={productForm.price} onChange={(e) => setProductForm({ ...productForm, price: e.target.value })}
-                      className={`w-full px-3 py-2 border rounded-md ${darkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"}`} placeholder="0.00" />
+                      className="w-full px-3 py-2 rounded-md bg-surface-container-highest text-on-surface outline outline-1 outline-primary/15 focus:outline-none" placeholder="0.00" />
                   </div>
                   <div>
-                    <label className={`block text-sm font-medium ${darkMode ? "text-gray-300" : "text-gray-700"} mb-1`}>Stock</label>
+                    <label className="block text-sm font-label text-on-surface-variant mb-1">Stock</label>
                     <input type="number" value={productForm.countInStock} onChange={(e) => setProductForm({ ...productForm, countInStock: e.target.value })}
-                      className={`w-full px-3 py-2 border rounded-md ${darkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"}`} placeholder="0" />
+                      className="w-full px-3 py-2 rounded-md bg-surface-container-highest text-on-surface outline outline-1 outline-primary/15 focus:outline-none" placeholder="0" />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className={`block text-sm font-medium ${darkMode ? "text-gray-300" : "text-gray-700"} mb-1`}>Brand</label>
+                    <label className="block text-sm font-label text-on-surface-variant mb-1">Brand</label>
                     <input type="text" value={productForm.brand} onChange={(e) => setProductForm({ ...productForm, brand: e.target.value })}
-                      className={`w-full px-3 py-2 border rounded-md ${darkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"}`} placeholder="Brand" />
+                      className="w-full px-3 py-2 rounded-md bg-surface-container-highest text-on-surface outline outline-1 outline-primary/15 focus:outline-none" placeholder="Brand" />
                   </div>
                   <div>
-                    <label className={`block text-sm font-medium ${darkMode ? "text-gray-300" : "text-gray-700"} mb-1`}>Category</label>
+                    <label className="block text-sm font-label text-on-surface-variant mb-1">Category</label>
                     <input type="text" value={productForm.category} onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
-                      className={`w-full px-3 py-2 border rounded-md ${darkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"}`} placeholder="Category" />
+                      className="w-full px-3 py-2 rounded-md bg-surface-container-highest text-on-surface outline outline-1 outline-primary/15 focus:outline-none" placeholder="Category" />
                   </div>
                 </div>
                 <div>
-                  <label className={`block text-sm font-medium ${darkMode ? "text-gray-300" : "text-gray-700"} mb-1`}>Description *</label>
+                  <label className="block text-sm font-label text-on-surface-variant mb-1">Description *</label>
                   <textarea value={productForm.description} onChange={(e) => setProductForm({ ...productForm, description: e.target.value })} rows={3}
-                    className={`w-full px-3 py-2 border rounded-md ${darkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"}`} placeholder="Description" />
+                    className="w-full px-3 py-2 rounded-md bg-surface-container-highest text-on-surface outline outline-1 outline-primary/15 focus:outline-none" placeholder="Description" />
                 </div>
                 <div className="flex gap-3 pt-4">
                   <button type="submit" disabled={savingProduct}
-                    className="flex-1 bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 disabled:bg-blue-300">
+                    className="flex-1 bg-primary text-on-primary py-2 px-4 rounded-md hover:bg-primary/90 disabled:opacity-50 font-label text-sm">
                     {savingProduct ? "Saving..." : editingProduct ? "Update Product" : "Add Product"}
                   </button>
                   <button type="button" onClick={() => { setShowProductModal(false); resetProductForm(); }}
-                    className={`flex-1 py-2 px-4 rounded-md ${darkMode ? "bg-gray-700 text-gray-300" : "bg-gray-300 text-gray-700"}`}>
+                    className="flex-1 py-2 px-4 rounded-md font-label text-sm bg-surface-container-highest text-on-surface-variant hover:bg-surface-container-lowest">
                     Cancel
                   </button>
                 </div>

@@ -4,7 +4,7 @@ import { getUserFromCookie } from "../utils/cookie.js";
 import { GetMyOrders, GetOrderById } from "../Api.js";
 import toast from "react-hot-toast";
 
-const OrderPage = ({ darkMode = false }) => {
+const OrderPage = () => {
   const { orderId } = useParams();
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
@@ -58,54 +58,59 @@ const OrderPage = ({ darkMode = false }) => {
 
   if (loading) {
     return (
-      <div className={`flex items-center justify-center min-h-screen ${darkMode ? "bg-gray-900" : "bg-gray-50"}`}>
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="flex items-center justify-center min-h-[100dvh] bg-surface-container-lowest">
+        <div className="inline-flex justify-center items-center gap-1">
+          <span className="dot-bounce bg-primary"></span>
+          <span className="dot-bounce delay-150 bg-primary"></span>
+          <span className="dot-bounce delay-300 bg-primary"></span>
+        </div>
       </div>
     );
   }
 
   if (selectedOrder) {
     return (
-      <div className={`min-h-screen ${darkMode ? "bg-gray-900" : "bg-gray-50"}`}>
+      <div className="min-h-[100dvh] bg-surface-container-lowest">
         <div className="max-w-4xl mx-auto p-4 sm:p-6">
           <button
             onClick={() => {
               navigate(-1);
               setSelectedOrder(null);
             }}
-            className="mb-4 text-blue-500 hover:underline"
+            className="mb-4 text-secondary hover:text-on-secondary font-label text-sm flex items-center gap-1"
           >
-            ← Back to Orders
+            <span className="material-symbols-outlined text-lg">arrow_back</span>
+            Back to Orders
           </button>
 
-          <div className={`rounded-lg shadow-md p-6 ${darkMode ? "bg-gray-800" : "bg-white"}`}>
+          <div className="rounded-lg shadow-md p-6 bg-surface-container-high">
             <div className="flex justify-between items-start mb-6">
               <div>
-                <h1 className={`text-2xl font-bold ${darkMode ? "text-white" : "text-gray-800"}`}>Order Details</h1>
-                <p className={darkMode ? "text-gray-400" : "text-gray-500"}>
+                <h1 className="text-2xl font-headline font-bold text-on-surface">Order Details</h1>
+                <p className="text-sm text-on-surface-variant">
                   Order #{selectedOrder._id?.slice(-8)}
                 </p>
               </div>
-              <span className={`px-3 py-1 rounded-full text-sm ${
-                selectedOrder.isPaid ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"
+              <span className={`px-3 py-1 rounded-full text-sm font-label ${
+                selectedOrder.isPaid ? "bg-secondary-container text-on-secondary-container" : "bg-error-container text-on-error-container"
               }`}>
                 {selectedOrder.isPaid ? "Paid" : "Pending Payment"}
               </span>
             </div>
 
-            <div className={`border-t pt-6 ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
-              <h2 className={`font-semibold mb-4 ${darkMode ? "text-white" : "text-gray-800"}`}>Items</h2>
+            <div className="border-t border-outline-variant pt-6">
+              <h2 className="font-headline font-bold text-on-surface mb-4">Items</h2>
               <div className="space-y-4">
                 {selectedOrder.orderItems?.map((item, index) => (
                   <div key={index} className="flex gap-4">
                     <img
                       src={item.image || item.product?.image || "https://via.placeholder.com/100"}
                       alt={item.name || item.product?.name}
-                      className="w-20 h-20 object-cover rounded"
+                      className="w-20 h-20 object-cover rounded-lg"
                     />
                     <div>
-                      <p className={`font-medium ${darkMode ? "text-white" : "text-gray-900"}`}>{item.name || item.product?.name}</p>
-                      <p className={darkMode ? "text-gray-400" : "text-gray-500"}>
+                      <p className="font-body font-bold text-on-surface">{item.name || item.product?.name}</p>
+                      <p className="text-sm text-on-surface-variant">
                         {item.qty || item.quantity} x ₹{(item.price || 0).toFixed(2)}
                       </p>
                     </div>
@@ -114,33 +119,33 @@ const OrderPage = ({ darkMode = false }) => {
               </div>
             </div>
 
-            <div className={`border-t pt-6 mt-6 ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
+            <div className="border-t border-outline-variant pt-6 mt-6">
               <div className="flex justify-between mb-2">
-                <span className={darkMode ? "text-gray-400" : "text-gray-600"}>Subtotal</span>
-                <span className={darkMode ? "text-white" : "text-gray-900"}>₹{selectedOrder.itemsPrice?.toFixed(2)}</span>
+                <span className="text-on-surface-variant font-body">Subtotal</span>
+                <span className="text-on-surface font-body">₹{selectedOrder.itemsPrice?.toFixed(2)}</span>
               </div>
               <div className="flex justify-between mb-2">
-                <span className={darkMode ? "text-gray-400" : "text-gray-600"}>Shipping</span>
-                <span className={darkMode ? "text-white" : "text-gray-900"}>₹{selectedOrder.shippingPrice?.toFixed(2)}</span>
+                <span className="text-on-surface-variant font-body">Shipping</span>
+                <span className="text-on-surface font-body">₹{selectedOrder.shippingPrice?.toFixed(2)}</span>
               </div>
               <div className="flex justify-between mb-2">
-                <span className={darkMode ? "text-gray-400" : "text-gray-600"}>Tax</span>
-                <span className={darkMode ? "text-white" : "text-gray-900"}>₹{selectedOrder.taxPrice?.toFixed(2)}</span>
+                <span className="text-on-surface-variant font-body">Tax</span>
+                <span className="text-on-surface font-body">₹{selectedOrder.taxPrice?.toFixed(2)}</span>
               </div>
-              <div className={`flex justify-between pt-2 border-t font-bold text-lg ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
-                <span className={darkMode ? "text-white" : "text-gray-800"}>Total</span>
-                <span className={darkMode ? "text-white" : "text-gray-800"}>₹{selectedOrder.totalPrice?.toFixed(2)}</span>
+              <div className="flex justify-between pt-2 border-t border-outline-variant font-headline font-bold text-lg">
+                <span className="text-on-surface">Total</span>
+                <span className="text-on-surface">₹{selectedOrder.totalPrice?.toFixed(2)}</span>
               </div>
             </div>
 
-            <div className={`border-t pt-6 mt-6 ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
-              <h2 className={`font-semibold mb-4 ${darkMode ? "text-white" : "text-gray-800"}`}>Shipping Address</h2>
-              <p className={darkMode ? "text-gray-300" : "text-gray-600"}>{selectedOrder.shippingAddress?.name}</p>
-              <p className={darkMode ? "text-gray-300" : "text-gray-600"}>{selectedOrder.shippingAddress?.street}</p>
-              <p className={darkMode ? "text-gray-300" : "text-gray-600"}>
+            <div className="border-t border-outline-variant pt-6 mt-6">
+              <h2 className="font-headline font-bold text-on-surface mb-4">Shipping Address</h2>
+              <p className="text-on-surface font-body">{selectedOrder.shippingAddress?.name}</p>
+              <p className="text-on-surface-variant font-body">{selectedOrder.shippingAddress?.street}</p>
+              <p className="text-on-surface-variant font-body">
                 {selectedOrder.shippingAddress?.city}, {selectedOrder.shippingAddress?.state} {selectedOrder.shippingAddress?.zipCode}
               </p>
-              <p className={darkMode ? "text-gray-300" : "text-gray-600"}>{selectedOrder.shippingAddress?.phone}</p>
+              <p className="text-on-surface-variant font-body">{selectedOrder.shippingAddress?.phone}</p>
             </div>
           </div>
         </div>
@@ -149,46 +154,46 @@ const OrderPage = ({ darkMode = false }) => {
   }
 
   return (
-    <div className={`min-h-screen ${darkMode ? "bg-gray-900" : "bg-gray-50"}`}>
+    <div className="min-h-[100dvh] bg-surface-container-lowest">
       <div className="max-w-6xl mx-auto p-4 sm:p-6">
-        <h1 className={`text-2xl md:text-3xl font-bold mb-6 ${darkMode ? "text-white" : "text-gray-800"}`}>My Orders</h1>
+        <h1 className="text-2xl md:text-3xl font-headline font-extrabold tracking-tighter text-primary mb-6">My Orders</h1>
 
         {orders.length === 0 ? (
-          <div className={`rounded-lg shadow-md p-8 text-center ${darkMode ? "bg-gray-800" : "bg-white"}`}>
-            <p className={`mb-4 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>You haven't placed any orders yet.</p>
-            <Link to="/shop" className="inline-block px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
+          <div className="rounded-lg shadow-md p-8 text-center bg-surface-container-high">
+            <p className="mb-4 text-on-surface-variant">You haven't placed any orders yet.</p>
+            <Link to="/shop" className="inline-block px-6 py-3 rounded-lg font-label text-sm text-white btn-gradient hover:opacity-90">
               Start Shopping
             </Link>
           </div>
         ) : (
           <div className="grid gap-4">
             {orders.map((order) => (
-              <div key={order._id} className={`rounded-lg shadow-md p-6 ${darkMode ? "bg-gray-800" : "bg-white"}`}>
+              <div key={order._id} className="rounded-lg shadow-md p-6 bg-surface-container-high">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <div>
-                    <p className={`font-semibold text-lg ${darkMode ? "text-white" : "text-gray-900"}`}>
+                    <p className="font-headline font-bold text-lg text-on-surface">
                       Order #{order._id?.slice(-8)}
                     </p>
-                    <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+                    <p className="text-sm text-on-surface-variant">
                       {new Date(order.createdAt).toLocaleDateString()}
                     </p>
                   </div>
                   <div className="flex items-center gap-4">
-                    <span className={`px-3 py-1 rounded-full text-sm ${
-                      order.isPaid ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"
+                    <span className={`px-3 py-1 rounded-full text-sm font-label ${
+                      order.isPaid ? "bg-secondary-container text-on-secondary-container" : "bg-error-container text-on-error-container"
                     }`}>
                       {order.isPaid ? "Paid" : "Pending"}
                     </span>
-                    <Link to={`/orders/${order._id}`} className="text-blue-500 hover:underline text-sm">
+                    <Link to={`/orders/${order._id}`} className="text-secondary hover:text-on-secondary font-label text-sm">
                       View Details
                     </Link>
                   </div>
                 </div>
-                <div className={`mt-4 pt-4 flex justify-between items-center ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
-                  <p className={darkMode ? "text-gray-400" : "text-gray-600"}>
+                <div className="mt-4 pt-4 border-t border-outline-variant flex justify-between items-center">
+                  <p className="text-on-surface-variant font-body">
                     {order.orderItems?.length || 0} items
                   </p>
-                  <p className={`font-semibold text-lg ${darkMode ? "text-white" : "text-gray-900"}`}>
+                  <p className="font-headline font-bold text-lg text-on-surface">
                     Total: ₹{order.totalPrice?.toFixed(2)}
                   </p>
                 </div>
