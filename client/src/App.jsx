@@ -15,6 +15,9 @@ import ShopPage from "./pages/shoppingPage.jsx";
 import SearchPage from "./pages/SearchPage.jsx";
 import CheckoutPage from "./pages/CheckoutPage.jsx";
 import AddProductPage from "./pages/AddProductPage.jsx";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage.jsx";
+import ResetPasswordPage from "./pages/ResetPasswordPage.jsx";
+import VerifyEmailPage from "./pages/VerifyEmailPage.jsx";
 
 const App = () => {
   const [darkMode, setDarkMode] = useState(() => {
@@ -56,6 +59,9 @@ const App = () => {
             <Route path="/search" element={<SearchPage darkMode={darkMode} />} />
             <Route path="/checkout" element={<CheckoutPage darkMode={darkMode} />} />
             <Route path="/add-product" element={<AddProductPage darkMode={darkMode} />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage darkMode={darkMode} />} />
+            <Route path="/reset-password/:token" element={<ResetPasswordPage darkMode={darkMode} />} />
+            <Route path="/verify-email/:token" element={<VerifyEmailPage darkMode={darkMode} />} />
           </Routes>
         </main>
         <Footer darkMode={darkMode} />
