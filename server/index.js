@@ -14,6 +14,7 @@ import favouriteRoutes from "./routes/favouriteRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
 import addressRoutes from "./routes/addressRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
+import mapplsRoutes from "./routes/mapplsRoutes.js";
 
 dotenv.config();
 connectDB();
@@ -34,6 +35,7 @@ app.use("/api/favourite", favouriteRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/address", addressRoutes);
 app.use("/api/payment", paymentRoutes);
+app.use("/api", mapplsRoutes);
 
 app.get("/", (req, res) => {
   res.send("API is running.......");

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { getUserFromCookie } from "../utils/cookie.js";
@@ -6,6 +6,9 @@ import { GetMyOrders, GetAddresses, AddAddress, UpdateAddress, DeleteAddress, Se
 import { logout } from "../redux/auth/authActions";
 import toast from "react-hot-toast";
 import AddProductPage from "./AddProductPage.jsx";
+
+// eslint-disable-next-line no-unused-vars
+let mapplsGlobal;
 
 const ProfilePage = ({ darkMode = false }) => {
   const navigate = useNavigate();
@@ -30,6 +33,13 @@ const ProfilePage = ({ darkMode = false }) => {
     label: "",
   });
   const [savingAddress, setSavingAddress] = useState(false);
+  const [showMapModal, setShowMapModal] = useState(false);
+  const mapContainerRef = useRef(null);
+  const mapObjectRef = useRef(null);
+  const markerRef = useRef(null);
+  const [mapReady, setMapReady] = useState(false);
+  const [mapLoading, setMapLoading] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState(null);
 
   const countries = [
     "India", "United States", "United Kingdom", "Canada", "Australia",
@@ -102,6 +112,107 @@ const ProfilePage = ({ darkMode = false }) => {
   const handleCloseModal = () => {
     setShowAddressModal(false);
     resetAddressForm();
+  };
+
+  const loadMapplsScripts = useCallback(async () => {
+    if (window.mappls && window.mappls.Map) return;
+    
+    const existingScript = document.querySelector('script[src*="sdk.mappls.com"]') || 
+                           document.querySelector('script[src*="apis.mappls.com"]');
+    if (existingScript) return;
+
+    await new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = "https://sdk.mappls.com/map/sdk/web?v=3.0&access_token=rjossmnfkadlbcnveqfjiscqbjqavtabikmo";
+      script.async = true;
+      script.defer = true;
+      script.onload = () => resolve();
+      script.onerror = () => resolve();
+      document.head.appendChild(script);
+    });
+  }, []);
+
+  const handleMapClick = useCallback(async (lat, lng) => {
+    setMapLoading(true);
+    try {
+      const response = await fetch(`http://localhost:4040/api/reverse-geocode?latitude=${lat}&longitude=${lng}`);
+      const data = await response.json();
+      
+      if (data?.results?.[0]) {
+        const loc = data.results[0];
+        setAddressForm(prev => ({
+          ...prev,
+          street: loc.formatted_address || loc.address || prev.street,
+          city: loc.locality || loc.village || prev.city,
+          state: loc.state || prev.state,
+          zipCode: loc.pincode || prev.zipCode,
+          country: "India",
+        }));
+        setSelectedLocation({ lat, lng, ...loc });
+      }
+         
+      if (mapObjectRef.current && window.mappls) {
+        if (markerRef.current && typeof markerRef.current.remove === "function") {
+          try { markerRef.current.remove(); } catch {}
+        }
+        markerRef.current = new window.mappls.Marker({
+          map: mapObjectRef.current,
+          position: { lat, lng },
+        });
+        mapObjectRef.current.setCenter({ lat, lng });
+        mapObjectRef.current.setZoom(15);
+      }
+    } catch (err) {
+      toast.error("Failed to get location details");
+    } finally {
+      setMapLoading(false);
+    }
+  }, []);
+
+  const initMap = useCallback(async (lat = 28.633, lng = 77.2194) => {
+    if (!mapContainerRef.current || !window.mappls || !window.mappls.Map) return;
+    
+    if (mapObjectRef.current && typeof mapObjectRef.current.remove === "function") {
+      try { mapObjectRef.current.remove(); } catch {}
+    }
+
+    mapObjectRef.current = new window.mappls.Map("profile-map", {
+      center: [lng, lat],
+      zoom: 12,
+      zoomControl: true,
+    });
+
+    mapObjectRef.current.on("click", (e) => {
+      const { lng: clickLng, lat: clickLat } = e.lngLat;
+      handleMapClick(clickLat, clickLng);
+    });
+  }, [handleMapClick]);
+
+  const handleGetCurrentLocation = useCallback(() => {
+    if (!navigator.geolocation) {
+      toast.error("Geolocation not supported");
+      return;
+    }
+    setMapLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        handleMapClick(position.coords.latitude, position.coords.longitude);
+      },
+      () => {
+        toast.error("Unable to get location");
+        setMapLoading(false);
+      }
+    );
+  }, [handleMapClick]);
+
+  const openMapModal = () => {
+    setShowMapModal(true);
+    setTimeout(() => {
+      loadMapplsScripts().then(() => {
+        setMapReady(true);
+        setTimeout(() => initMap(), 500);
+      });
+    }, 100);
   };
 
   const handleAddressFormChange = (e) => {
@@ -403,9 +514,15 @@ const ProfilePage = ({ darkMode = false }) => {
                 </div>
                 <div>
                   <label className={`block text-sm font-medium ${darkMode ? "text-gray-300" : "text-gray-700"} mb-1`}>Street Address *</label>
-                  <input type="text" name="street" value={addressForm.street} onChange={handleAddressFormChange}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${darkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"}`}
-                    placeholder="123 Main Street, Apt 4" />
+                  <div className="flex gap-2">
+                    <input type="text" name="street" value={addressForm.street} onChange={handleAddressFormChange}
+                      className={`flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${darkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"}`}
+                      placeholder="123 Main Street, Apt 4" />
+                    <button type="button" onClick={openMapModal}
+                      className="px-3 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm whitespace-nowrap">
+                      📍 Pick from Map
+                    </button>
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -469,6 +586,42 @@ const ProfilePage = ({ darkMode = false }) => {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showMapModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className={`rounded-lg max-w-2xl w-full max-h-[90vh] overflow-hidden ${darkMode ? "bg-gray-800" : "bg-white"}`}>
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+              <h2 className={`text-lg font-bold ${darkMode ? "text-white" : "text-gray-800"}`}>
+                Select Location from Map
+              </h2>
+              <button onClick={() => setShowMapModal(false)} className={darkMode ? "text-gray-400 hover:text-gray-200" : "text-gray-500 hover:text-gray-700"}>✕</button>
+            </div>
+            <div className="p-4">
+              <div className="flex justify-between items-center mb-4">
+                <button type="button" onClick={handleGetCurrentLocation} disabled={mapLoading}
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:bg-gray-400 flex items-center gap-2">
+                  {mapLoading ? "Getting..." : "📍 Use Current Location"}
+                </button>
+                <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+                  Click on map to select location
+                </p>
+              </div>
+              <div id="profile-map" ref={mapContainerRef} className="h-[400px] w-full rounded-lg" style={{ minHeight: '400px' }} />
+              {selectedLocation && (
+                <div className="mt-4 flex justify-end gap-2">
+                  <button type="button" onClick={() => {
+                    setShowMapModal(false);
+                    toast.success("Location selected!");
+                  }}
+                    className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600">
+                    Confirm Location
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
