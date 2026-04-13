@@ -66,6 +66,30 @@ const CreateProduct = async (token, data) =>
     },
   });
 
+// get my products
+const GetMyProducts = async (token) =>
+  await api.get("/product/my-products", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+// update product
+const UpdateProduct = async (token, id, data) =>
+  await api.put(`/product/${id}`, data, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+// delete product
+const DeleteProduct = async (token, id) =>
+  await api.delete(`/product/${id}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
 // to search products
 const GetProducts = async (keyword, page = 1, limit = 20, sort = "newest", minPrice, maxPrice, category, brand) => {
   const params = new URLSearchParams();
@@ -244,6 +268,9 @@ export {
   GetProducts,
   UploadProductImage,
   CreateProduct,
+  GetMyProducts,
+  UpdateProduct,
+  DeleteProduct,
   GetCartItems,
   DeleteCartItem,
   DeleteCartItems,

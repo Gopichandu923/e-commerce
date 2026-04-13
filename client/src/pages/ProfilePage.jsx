@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { getUserFromCookie } from "../utils/cookie.js";
-import { GetMyOrders, GetAddresses, AddAddress, UpdateAddress, DeleteAddress, SetMainAddress } from "../Api.js";
+import { GetMyOrders, GetAddresses, AddAddress, UpdateAddress, DeleteAddress, SetMainAddress, GetMyProducts, UpdateProduct, DeleteProduct, UploadProductImage, CreateProduct } from "../Api.js";
 import { logout } from "../redux/auth/authActions";
 import toast from "react-hot-toast";
 import AddProductPage from "./AddProductPage.jsx";
@@ -40,6 +40,22 @@ const ProfilePage = ({ darkMode = false }) => {
   const [mapReady, setMapReady] = useState(false);
   const [mapLoading, setMapLoading] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(null);
+  const [myProducts, setMyProducts] = useState([]);
+  const [productsLoading, setProductsLoading] = useState(false);
+  const [showProductModal, setShowProductModal] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [productForm, setProductForm] = useState({
+    name: "",
+    price: "",
+    description: "",
+    brand: "",
+    category: "",
+    countInStock: "",
+  });
+  const [productImagePreview, setProductImagePreview] = useState(null);
+  const [productUploadedUrl, setProductUploadedUrl] = useState("");
+  const [uploadingProductImage, setUploadingProductImage] = useState(false);
+  const [savingProduct, setSavingProduct] = useState(false);
 
   const countries = [
     "India", "United States", "United Kingdom", "Canada", "Australia",
@@ -72,6 +88,23 @@ const ProfilePage = ({ darkMode = false }) => {
     };
     fetchData();
   }, [currentUser]);
+
+  useEffect(() => {
+    if (activeTab === "myProducts" && currentUser?.token) {
+      const fetchMyProducts = async () => {
+        setProductsLoading(true);
+        try {
+          const res = await GetMyProducts(currentUser.token);
+          setMyProducts(res.data || []);
+        } catch (err) {
+          console.error("Error fetching products:", err);
+        } finally {
+          setProductsLoading(false);
+        }
+      };
+      fetchMyProducts();
+    }
+  }, [activeTab, currentUser]);
 
   const resetAddressForm = () => {
     setAddressForm({
@@ -116,9 +149,9 @@ const ProfilePage = ({ darkMode = false }) => {
 
   const loadMapplsScripts = useCallback(async () => {
     if (window.mappls && window.mappls.Map) return;
-    
-    const existingScript = document.querySelector('script[src*="sdk.mappls.com"]') || 
-                           document.querySelector('script[src*="apis.mappls.com"]');
+
+    const existingScript = document.querySelector('script[src*="sdk.mappls.com"]') ||
+      document.querySelector('script[src*="apis.mappls.com"]');
     if (existingScript) return;
 
     await new Promise((resolve) => {
@@ -137,7 +170,7 @@ const ProfilePage = ({ darkMode = false }) => {
     try {
       const response = await fetch(`http://localhost:4040/api/reverse-geocode?latitude=${lat}&longitude=${lng}`);
       const data = await response.json();
-      
+
       if (data?.results?.[0]) {
         const loc = data.results[0];
         setAddressForm(prev => ({
@@ -150,10 +183,10 @@ const ProfilePage = ({ darkMode = false }) => {
         }));
         setSelectedLocation({ lat, lng, ...loc });
       }
-         
+
       if (mapObjectRef.current && window.mappls) {
         if (markerRef.current && typeof markerRef.current.remove === "function") {
-          try { markerRef.current.remove(); } catch {}
+          try { markerRef.current.remove(); } catch { }
         }
         markerRef.current = new window.mappls.Marker({
           map: mapObjectRef.current,
@@ -171,9 +204,9 @@ const ProfilePage = ({ darkMode = false }) => {
 
   const initMap = useCallback(async (lat = 28.633, lng = 77.2194) => {
     if (!mapContainerRef.current || !window.mappls || !window.mappls.Map) return;
-    
+
     if (mapObjectRef.current && typeof mapObjectRef.current.remove === "function") {
-      try { mapObjectRef.current.remove(); } catch {}
+      try { mapObjectRef.current.remove(); } catch { }
     }
 
     mapObjectRef.current = new window.mappls.Map("profile-map", {
@@ -313,13 +346,100 @@ const ProfilePage = ({ darkMode = false }) => {
     }
   };
 
+  const resetProductForm = () => {
+    setProductForm({ name: "", price: "", description: "", brand: "", category: "", countInStock: "" });
+    setProductImagePreview(null);
+    setProductUploadedUrl("");
+    setEditingProduct(null);
+  };
+
+  const handleOpenEditProduct = (product) => {
+    setProductForm({
+      name: product.name || "",
+      price: product.price?.toString() || "",
+      description: product.description || "",
+      brand: product.brand || "",
+      category: product.category || "",
+      countInStock: product.countInStock?.toString() || "",
+    });
+    setProductImagePreview(product.image);
+    setProductUploadedUrl(product.image);
+    setEditingProduct(product._id);
+    setShowProductModal(true);
+  };
+
+  const handleProductImageSelect = async (e) => {
+    const file = e.target.files[0];
+    if (!file || !currentUser?.token) return;
+    setProductImagePreview(URL.createObjectURL(file));
+    setUploadingProductImage(true);
+    try {
+      const res = await UploadProductImage(currentUser.token, file);
+      setProductUploadedUrl(res.data.imageUrl);
+      toast.success("Image uploaded");
+    } catch (err) {
+      toast.error("Failed to upload image");
+    } finally {
+      setUploadingProductImage(false);
+    }
+  };
+
+  const handleSaveProduct = async (e) => {
+    e.preventDefault();
+    if (!currentUser?.token) return;
+    if (!productForm.name.trim() || !productForm.price || !productForm.description.trim()) {
+      toast.error("Please fill all required fields");
+      return;
+    }
+    setSavingProduct(true);
+    try {
+      const data = {
+        name: productForm.name.trim(),
+        price: parseFloat(productForm.price),
+        description: productForm.description.trim(),
+        brand: productForm.brand.trim(),
+        category: productForm.category,
+        countInStock: parseInt(productForm.countInStock) || 0,
+        image: productUploadedUrl || productImagePreview,
+      };
+      if (editingProduct) {
+        await UpdateProduct(currentUser.token, editingProduct, data);
+        toast.success("Product updated");
+      } else {
+        await CreateProduct(currentUser.token, data);
+        toast.success("Product added");
+      }
+      setShowProductModal(false);
+      resetProductForm();
+      const res = await GetMyProducts(currentUser.token);
+      setMyProducts(res.data || []);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to save product");
+    } finally {
+      setSavingProduct(false);
+    }
+  };
+
+  const handleDeleteMyProduct = async (productId) => {
+    if (!currentUser?.token) return;
+    if (!window.confirm("Delete this product?")) return;
+    try {
+      await DeleteProduct(currentUser.token, productId);
+      setMyProducts(myProducts.filter(p => p._id !== productId));
+      toast.success("Product deleted");
+    } catch (err) {
+      toast.error("Failed to delete product");
+    }
+  };
+
   if (!currentUser) return null;
 
   const tabs = [
     { id: "profile", label: "Profile", icon: "👤" },
     { id: "orders", label: "My Orders", icon: "📦" },
     { id: "addresses", label: "Addresses", icon: "📍" },
-    { id: "addProduct", label: "Add Product", icon: "➕" },
+    { id: "myProducts", label: "My Products", icon: "🛍️" },
+    { id: "addProduct", label: "Sell Product", icon: "➕" },
   ];
 
   const renderContent = () => {
@@ -355,11 +475,10 @@ const ProfilePage = ({ darkMode = false }) => {
                 dispatch(logout());
                 navigate("/login");
               }}
-              className={`w-full py-3 rounded-lg font-medium transition-colors ${
-                darkMode 
-                  ? "bg-red-600 text-white hover:bg-red-700" 
+              className={`w-full py-3 rounded-lg font-medium transition-colors ${darkMode
+                  ? "bg-red-600 text-white hover:bg-red-700"
                   : "bg-red-500 text-white hover:bg-red-600"
-              }`}
+                }`}
             >
               Logout
             </button>
@@ -451,6 +570,39 @@ const ProfilePage = ({ darkMode = false }) => {
           </div>
         );
 
+      case "myProducts":
+        return (
+          <div className="space-y-4">
+            <h3 className={`text-xl font-semibold ${darkMode ? "text-white" : "text-gray-800"}`}>My Products</h3>
+            {productsLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mx-auto"></div>
+              </div>
+            ) : myProducts.length === 0 ? (
+              <div className={`p-8 rounded-lg shadow-md text-center ${darkMode ? "bg-gray-800" : "bg-white"}`}>
+                <p className={`mb-4 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>You haven't added any products yet</p>
+                <button onClick={() => setActiveTab("addProduct")} className="text-blue-500 hover:underline">Add your first product</button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {myProducts.map((product) => (
+                  <div key={product._id} className={`p-4 rounded-lg shadow-md ${darkMode ? "bg-gray-800" : "bg-white"}`}>
+                    <img src={product.image} alt={product.name} className="w-full h-40 object-cover rounded-lg mb-3" />
+                    <h4 className={`font-semibold ${darkMode ? "text-white" : "text-gray-900"}`}>{product.name}</h4>
+                    <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>{product.brand}</p>
+                    <p className={`text-lg font-bold text-green-600`}>₹{product.price}</p>
+                    <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>Stock: {product.countInStock}</p>
+                    <div className="flex gap-2 mt-3">
+                      <button onClick={() => handleOpenEditProduct(product)} className="flex-1 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm">Edit</button>
+                      <button onClick={() => handleDeleteMyProduct(product._id)} className="flex-1 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 text-sm">Delete</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+
       case "addProduct":
         return <AddProductPage darkMode={darkMode} />;
 
@@ -479,9 +631,8 @@ const ProfilePage = ({ darkMode = false }) => {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`w-full text-left px-4 py-3 rounded-md flex items-center gap-3 transition-colors ${
-                      activeTab === tab.id ? "bg-blue-50 text-blue-600" : darkMode ? "text-gray-300 hover:bg-gray-700" : "text-gray-600 hover:bg-gray-50"
-                    }`}
+                    className={`w-full text-left px-4 py-3 rounded-md flex items-center gap-3 transition-colors ${activeTab === tab.id ? "bg-blue-50 text-blue-600" : darkMode ? "text-gray-300 hover:bg-gray-700" : "text-gray-600 hover:bg-gray-50"
+                      }`}
                   >
                     <span>{tab.icon}</span>
                     <span>{tab.label}</span>
@@ -622,6 +773,75 @@ const ProfilePage = ({ darkMode = false }) => {
                   </button>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showProductModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className={`rounded-lg max-w-lg w-full max-h-[90vh] overflow-y-auto ${darkMode ? "bg-gray-800" : "bg-white"}`}>
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className={`text-xl font-bold ${darkMode ? "text-white" : "text-gray-800"}`}>
+                  {editingProduct ? "Edit Product" : "Add Product"}
+                </h2>
+                <button onClick={() => { setShowProductModal(false); resetProductForm(); }} className={darkMode ? "text-gray-400 hover:text-gray-200" : "text-gray-500 hover:text-gray-700"}>✕</button>
+              </div>
+              <form onSubmit={handleSaveProduct} className="space-y-4">
+                <div>
+                  <label className={`block text-sm font-medium ${darkMode ? "text-gray-300" : "text-gray-700"} mb-1`}>Product Image</label>
+                  <div className="flex items-center gap-4">
+                    {productImagePreview && <img src={productImagePreview} alt="Preview" className="w-20 h-20 object-cover rounded-lg" />}
+                    <input type="file" accept="image/*" onChange={handleProductImageSelect} className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-700"}`} />
+                    {uploadingProductImage && <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>}
+                  </div>
+                </div>
+                <div>
+                  <label className={`block text-sm font-medium ${darkMode ? "text-gray-300" : "text-gray-700"} mb-1`}>Product Name *</label>
+                  <input type="text" value={productForm.name} onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
+                    className={`w-full px-3 py-2 border rounded-md ${darkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"}`} placeholder="Product name" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className={`block text-sm font-medium ${darkMode ? "text-gray-300" : "text-gray-700"} mb-1`}>Price (₹) *</label>
+                    <input type="number" value={productForm.price} onChange={(e) => setProductForm({ ...productForm, price: e.target.value })}
+                      className={`w-full px-3 py-2 border rounded-md ${darkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"}`} placeholder="0.00" />
+                  </div>
+                  <div>
+                    <label className={`block text-sm font-medium ${darkMode ? "text-gray-300" : "text-gray-700"} mb-1`}>Stock</label>
+                    <input type="number" value={productForm.countInStock} onChange={(e) => setProductForm({ ...productForm, countInStock: e.target.value })}
+                      className={`w-full px-3 py-2 border rounded-md ${darkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"}`} placeholder="0" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className={`block text-sm font-medium ${darkMode ? "text-gray-300" : "text-gray-700"} mb-1`}>Brand</label>
+                    <input type="text" value={productForm.brand} onChange={(e) => setProductForm({ ...productForm, brand: e.target.value })}
+                      className={`w-full px-3 py-2 border rounded-md ${darkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"}`} placeholder="Brand" />
+                  </div>
+                  <div>
+                    <label className={`block text-sm font-medium ${darkMode ? "text-gray-300" : "text-gray-700"} mb-1`}>Category</label>
+                    <input type="text" value={productForm.category} onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
+                      className={`w-full px-3 py-2 border rounded-md ${darkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"}`} placeholder="Category" />
+                  </div>
+                </div>
+                <div>
+                  <label className={`block text-sm font-medium ${darkMode ? "text-gray-300" : "text-gray-700"} mb-1`}>Description *</label>
+                  <textarea value={productForm.description} onChange={(e) => setProductForm({ ...productForm, description: e.target.value })} rows={3}
+                    className={`w-full px-3 py-2 border rounded-md ${darkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"}`} placeholder="Description" />
+                </div>
+                <div className="flex gap-3 pt-4">
+                  <button type="submit" disabled={savingProduct}
+                    className="flex-1 bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 disabled:bg-blue-300">
+                    {savingProduct ? "Saving..." : editingProduct ? "Update Product" : "Add Product"}
+                  </button>
+                  <button type="button" onClick={() => { setShowProductModal(false); resetProductForm(); }}
+                    className={`flex-1 py-2 px-4 rounded-md ${darkMode ? "bg-gray-700 text-gray-300" : "bg-gray-300 text-gray-700"}`}>
+                    Cancel
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>

@@ -84,13 +84,13 @@ const createProduct = asyncHandler(async (req, res) => {
 });
 
 const updateProduct = asyncHandler(async (req, res) => {
-  const { name, price, description, image, brand, category, countInStock } =
-    req.body;
+  const { name, price, description, image, brand, category, countInStock } = req.body;
 
   const product = await Product.findById(req.params.id);
 
   if (product) {
-    if (product.user.toString() !== req.user._id.toString()) {
+    // Allow if user is admin or is the product owner
+    if (!req.user.isAdmin && product.user.toString() !== req.user._id.toString()) {
       res.status(403);
       throw new Error("You can only update your own products");
     }
@@ -112,19 +112,26 @@ const updateProduct = asyncHandler(async (req, res) => {
 });
 
 const deleteProduct = asyncHandler(async (req, res) => {
-  const product = await Product.findById(req.params.id);
+  try {
+    const product = await Product.findById(req.params.id);
 
-  if (product) {
-    if (product.user.toString() !== req.user._id.toString()) {
+    if (!product) {
+      res.status(404);
+      throw new Error("Product not found");
+    }
+
+    // Allow if user is admin or is the product owner
+    if (req.user.isAdmin || product.user.toString() === req.user._id.toString()) {
+      await product.deleteOne();
+      res.status(200).json({ message: "Product removed" });
+    } else {
       res.status(403);
       throw new Error("You can only delete your own products");
     }
-
-    await product.remove();
-    res.status(200).json({ message: "Product removed" });
-  } else {
-    res.status(404);
-    throw new Error("Product not found");
+  } catch (error) {
+    console.error("Delete product error:", error);
+    res.status(res.statusCode || 500);
+    throw new Error(error.message || "Failed to delete product");
   }
 });
 
@@ -215,6 +222,11 @@ const getProductsByCategory = asyncHandler(async (req, res) => {
   }
 });
 
+const getMyProducts = asyncHandler(async (req, res) => {
+  const products = await Product.find({ user: req.user._id }).sort({ createdAt: -1 });
+  res.status(200).json(products);
+});
+
 const seacrhProducts = asyncHandler(async (req, res) => {
   const {
     keyword,
@@ -300,4 +312,5 @@ export {
   getProductsByCategory,
   seacrhProducts,
   uploadImage,
+  getMyProducts,
 };
