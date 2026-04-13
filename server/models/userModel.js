@@ -66,6 +66,10 @@ const userSchema = mongoose.Schema(
       required: true,
       default: false,
     },
+    isSeller: {
+      type: Boolean,
+      default: false,
+    },
     isVerified: {
       type: Boolean,
       default: false,

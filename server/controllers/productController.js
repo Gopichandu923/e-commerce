@@ -1,4 +1,5 @@
 import Product from "../models/productModel.js";
+import User from "../models/userModel.js";
 import asyncHandler from "express-async-handler";
 import { v2 as cloudinary } from "cloudinary";
 
@@ -80,6 +81,12 @@ const createProduct = asyncHandler(async (req, res) => {
   });
 
   const createdProduct = await product.save();
+
+  // Update user to seller if not already
+  if (!req.user.isSeller && !req.user.isAdmin) {
+    await User.findByIdAndUpdate(req.user._id, { isSeller: true });
+  }
+
   res.status(201).json(createdProduct);
 });
 
