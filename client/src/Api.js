@@ -1,7 +1,6 @@
 import axios from "axios";
-//https://e-commerce-9a9t.onrender.com
 const api = axios.create({
-  baseURL: "http://localhost:4040/api",
+  baseURL: "https://e-commerce-9a9t.onrender.com/api",
 });
 
 // Helper for multipart form data
@@ -22,6 +21,15 @@ const Login = async (data) => await api.post("/user/login", data);
 
 // Signup
 const Register = async (data) => await api.post("/user", data);
+
+// Forgot Password
+const ForgotPassword = async (email) => await api.post("/user/forgot-password", { email });
+
+// Reset Password
+const ResetPassword = async (token, password) => await api.put(`/user/reset-password/${token}`, { password });
+
+// Verify Email
+const VerifyEmail = async (token) => await api.post(`/user/verify-email/${token}`);
 
 //products
 
@@ -260,6 +268,9 @@ const VerifyPayment = async (token, data) =>
 export {
   Login,
   Register,
+  ForgotPassword,
+  ResetPassword,
+  VerifyEmail,
   GetAllProducts,
   GetAllCategories,
   GetProductById,
