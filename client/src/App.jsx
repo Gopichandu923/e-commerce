@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import Home from "./pages/HomePage.jsx";
 import Cart from "./pages/CartPage.jsx";
@@ -18,6 +18,44 @@ import AddProductPage from "./pages/AddProductPage.jsx";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage.jsx";
 import ResetPasswordPage from "./pages/ResetPasswordPage.jsx";
 import VerifyEmailPage from "./pages/VerifyEmailPage.jsx";
+
+const pageTitles = {
+  "/": "Home - ShopEase",
+  "/cart": "Shopping Cart - ShopEase",
+  "/favourite": "Wishlist - ShopEase",
+  "/profile": "My Profile - ShopEase",
+  "/login": "Login - ShopEase",
+  "/register": "Register - ShopEase",
+  "/orders": "My Orders - ShopEase",
+  "/shop": "Shop - ShopEase",
+  "/search": "Search - ShopEase",
+  "/checkout": "Checkout - ShopEase",
+  "/add-product": "Add Product - ShopEase",
+  "/forgot-password": "Forgot Password - ShopEase",
+  "/reset-password": "Reset Password - ShopEase",
+  "/verify-email": "Verify Email - ShopEase",
+};
+
+const PageTitle = () => {
+  const location = useLocation();
+  
+  useEffect(() => {
+    if (location.pathname.startsWith("/product/")) {
+      document.title = "Product Details - ShopEase";
+    } else if (location.pathname.startsWith("/orders/")) {
+      document.title = "Order Details - ShopEase";
+    } else if (location.pathname.startsWith("/shop/")) {
+      const category = decodeURIComponent(location.pathname.split("/")[2] || "");
+      document.title = category ? `${category} - ShopEase` : "Shop - ShopEase";
+    } else if (pageTitles[location.pathname]) {
+      document.title = pageTitles[location.pathname];
+    } else {
+      document.title = "ShopEase - Your One-Stop Shop";
+    }
+  }, [location]);
+
+  return null;
+};
 
 const App = () => {
   const [darkMode, setDarkMode] = useState(() => {
@@ -41,6 +79,7 @@ const App = () => {
 
   return (
     <Router>
+      <PageTitle />
       <div className={`app-container ${darkMode ? "dark" : ""} w-full overflow-x-hidden`}>
         <Header darkMode={darkMode} setDarkMode={setDarkMode} cartCount={cartCount} />
         <main className="main-content pt-20 pb-12 w-full">
