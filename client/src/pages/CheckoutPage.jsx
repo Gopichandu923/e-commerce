@@ -126,7 +126,7 @@ const CheckoutPage = ({ darkMode = false }) => {
             key: razorpayOrder.keyId, 
             amount: razorpayOrder.amount,
             currency: razorpayOrder.currency,
-            name: "ShopEZ",
+            name: "ShopEase",
             description: "Order Payment",
             order_id: razorpayOrder.id,
             handler: async (response) => {
