@@ -15,6 +15,7 @@ import cartRoutes from "./routes/cartRoutes.js";
 import addressRoutes from "./routes/addressRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import mapplsRoutes from "./routes/mapplsRoutes.js";
+import newsletterRoutes from "./routes/newsletterRoutes.js";
 
 dotenv.config();
 connectDB();
@@ -36,6 +37,7 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/address", addressRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api", mapplsRoutes);
+app.use("/api/newsletter", newsletterRoutes);
 
 app.get("/", (req, res) => {
   res.send("API is running.......");
