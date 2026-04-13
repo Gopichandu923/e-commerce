@@ -1,9 +1,16 @@
 import express from "express";
 import dotenv from "dotenv";
+dotenv.config();
+
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+const RENDER_URL = process.env.RENDER_URL || "";
+
 import cors from "cors";
 import connectDB from "./config/database.js";
 import colors from "colors";
 import fileUpload from "express-fileupload";
+import path from "path";
+import { fileURLToPath } from "url";
 
 import { notFound, errorHandler } from "./middleware/errorHandlerMiddleware.js";
 
@@ -17,13 +24,14 @@ import paymentRoutes from "./routes/paymentRoutes.js";
 import mapplsRoutes from "./routes/mapplsRoutes.js";
 import newsletterRoutes from "./routes/newsletterRoutes.js";
 
-dotenv.config();
 connectDB();
 
 const app = express();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 app.use(cors({
-  origin: ["https://shopez-ecommerce.netlify.app", "http://localhost:5173", "https://www.shopez-ecommerce.netlify.app", "https://e-commerce-azure-gamma-29.vercel.app", "https://www.e-commerce-azure-gamma-29.vercel.app/"],
+  origin: [FRONTEND_URL, "http://localhost:5173", RENDER_URL, "https://*.render.com"].filter(Boolean),
   credentials: true
 }));
 app.use(express.json());
@@ -39,8 +47,11 @@ app.use("/api/payment", paymentRoutes);
 app.use("/api", mapplsRoutes);
 app.use("/api/newsletter", newsletterRoutes);
 
-app.get("/", (req, res) => {
-  res.send("API is running.......");
+// Serve frontend in production
+app.use(express.static(path.join(__dirname, "../client/dist")));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../client/dist/index.html"));
 });
 
 app.use(notFound);
