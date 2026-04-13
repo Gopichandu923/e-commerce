@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 const categoriesData = [
@@ -145,38 +145,73 @@ const HomePage = ({ darkMode = false }) => {
     </section>
   );
 
-  const CallToAction = () => (
-    <section className="bg-[#041627] py-20">
-      <div className="w-full px-6 md:px-12 lg:px-24 text-center max-w-3xl">
-        <span className="text-secondary font-label text-xs tracking-[0.2em] uppercase">
-          The Newsletter
-        </span>
-        <h2 className="text-3xl md:text-4xl font-headline font-bold text-white mt-4 mb-6">
-          Join the Atelier
-        </h2>
-        <p className="text-white/60 font-body mb-8 mx-auto max-w-xl">
-          Subscribe for exclusive access to new arrivals, private collections, and editorial stories.
-        </p>
-        <form className="w-full max-w-md mx-auto flex flex-col sm:flex-row gap-4">
-          <input
-            type="email"
-            placeholder="Your email address"
-            className="flex-grow py-3 px-4 rounded-lg bg-[#1a2b3c] text-white border border-[#1a2b3c] focus:border-secondary focus:outline-none font-body placeholder-white/40"
-            required
-          />
-          <button
-            type="submit"
-            className="btn-gradient px-8 py-3 rounded-lg text-white font-label text-sm tracking-widest uppercase hover:opacity-90 transition-opacity"
-          >
-            Subscribe
-          </button>
-        </form>
-        <p className="mt-6 text-xs text-white/40 font-label">
-          We respect your privacy. Unsubscribe at any time.
-        </p>
-      </div>
-    </section>
-  );
+  const CallToAction = () => {
+    const [email, setEmail] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [subscribed, setSubscribed] = useState(false);
+
+    const handleSubscribe = async (e) => {
+      e.preventDefault();
+      if (!email.trim()) return;
+      
+      setLoading(true);
+      try {
+        await fetch("http://localhost:4040/api/newsletter/subscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        });
+        setSubscribed(true);
+        setEmail("");
+      } catch (err) {
+        console.error("Newsletter error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    return (
+      <section className="bg-[#041627] py-20">
+        <div className="w-full px-6 md:px-12 lg:px-24 text-center max-w-3xl">
+          <span className="text-secondary font-label text-xs tracking-[0.2em] uppercase">
+            Newsletter
+          </span>
+          <h2 className="text-3xl md:text-4xl font-headline font-bold text-white mt-4 mb-6">
+            Subscribe to ShopEase
+          </h2>
+          <p className="text-white/60 font-body mb-8 mx-auto max-w-xl">
+            Get the latest updates on new products, special offers, and exclusive deals. Join thousands of happy shoppers!
+          </p>
+          {subscribed ? (
+            <div className="bg-green-500/20 text-green-400 py-3 px-6 rounded-lg max-w-md mx-auto">
+              ✓ Thanks for subscribing! Check your inbox for a welcome gift.
+            </div>
+          ) : (
+            <form onSubmit={handleSubscribe} className="w-full max-w-md mx-auto flex flex-col sm:flex-row gap-4">
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email address"
+                className="flex-grow py-3 px-4 rounded-lg bg-[#1a2b3c] text-white border border-[#1a2b3c] focus:border-secondary focus:outline-none font-body placeholder-white/40"
+                required
+              />
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn-gradient px-8 py-3 rounded-lg text-white font-label text-sm tracking-widest uppercase hover:opacity-90 transition-opacity disabled:opacity-50"
+              >
+                {loading ? "Subscribing..." : "Subscribe"}
+              </button>
+            </form>
+          )}
+          <p className="mt-6 text-xs text-white/40 font-label">
+            We respect your privacy. Unsubscribe at any time.
+          </p>
+        </div>
+      </section>
+    );
+  };
 
   const FeatureHighlights = () => (
     <section className="py-24 bg-[#f5f3f4]">
