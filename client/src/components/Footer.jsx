@@ -7,12 +7,12 @@ const Footer = ({ darkMode = false }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:flex lg:justify-between px-6 md:px-12 lg:px-24 max-w-7xl mx-auto">
         <div className="mb-10 lg:mb-0">
           <span className={`text-lg font-bold font-headline ${darkMode ? "text-[#fbf9fa]" : "text-[#041627]"}`}>
-            ATELIER
+            ShopEase
           </span>
           <p className={`mt-4 font-label text-xs leading-loose max-w-xs ${
             darkMode ? "text-[#fbf9fa]/50" : "text-[#041627]/50"
           }`}>
-            Elevating the everyday through a curated lens of architectural precision and artisanal quality.
+            Your one-stop shop for everything you need. Shop with ease, anytime, anywhere.
           </p>
         </div>
         <div className="grid grid-cols-2 gap-12 lg:flex lg:gap-20">
@@ -49,7 +49,7 @@ const Footer = ({ darkMode = false }) => {
         <span className={`font-label text-[10px] tracking-[0.2em] uppercase ${
           darkMode ? "text-[#fbf9fa]/50" : "text-[#041627]/50"
         }`}>
-          © {new Date().getFullYear()} THE DIGITAL ATELIER. ALL RIGHTS RESERVED.
+          © {new Date().getFullYear()} ShopEase. All rights reserved.
         </span>
       </div>
     </footer>
