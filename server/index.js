@@ -9,9 +9,6 @@ import cors from "cors";
 import connectDB from "./config/database.js";
 import colors from "colors";
 import fileUpload from "express-fileupload";
-import path from "path";
-import { fileURLToPath } from "url";
-
 import { notFound, errorHandler } from "./middleware/errorHandlerMiddleware.js";
 
 import authRoutes from "./routes/authRoutes.js";
@@ -27,8 +24,6 @@ import newsletterRoutes from "./routes/newsletterRoutes.js";
 connectDB();
 
 const app = express();
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 app.use(cors({
   origin: [FRONTEND_URL, "http://localhost:5173", RENDER_URL, "https://*.render.com"].filter(Boolean),
@@ -47,13 +42,7 @@ app.use("/api/payment", paymentRoutes);
 app.use("/api", mapplsRoutes);
 app.use("/api/newsletter", newsletterRoutes);
 
-// Serve frontend in production
-app.use(express.static(path.join(__dirname, "../client/dist")));
-
-app.get("(.*)", (req, res) => {
-  res.sendFile(path.join(__dirname, "../client/dist/index.html"));
-});
-
+// Serve frontend in production (Netlify handles frontend)
 app.use(notFound);
 app.use(errorHandler);
 
